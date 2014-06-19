@@ -1,0 +1,208 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>My first Three.js app</title>
+	</head>
+	<body>
+		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+		<script>
+		"use strict";
+		// a simple viewer with camera controls which has the z-axis vertical
+
+		var scene, camera, renderer, render;
+		var cube, wireGeom, wireMat, wire;
+		var cameraContainer;
+		
+		var lmbdown; // left mouse button down
+
+		// set the document style (CSS)
+		document.body.style.margin = '0px';
+		document.body.style.backgroundColor = '#eeeeee';
+		
+		// vertical split
+		var objectDetails = document.createElement('div');
+		objectDetails.innerHTML = 'hello';
+		objectDetails.style.cssFloat = 'left';
+		objectDetails.style.width = '200px';
+		objectDetails.style.backgroundColor = '#ffff00';
+		document.body.appendChild(objectDetails);
+
+		// set up 3d view
+		scene = new THREE.Scene();
+		camera = new THREE.PerspectiveCamera( 50, (window.innerWidth - 200) / window.innerHeight, 0.1, 1000 );
+		renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth - 200, window.innerHeight);
+		renderer.domElement.style.cssFloat = 'right';
+		renderer.domElement.style.width = (window.innerWidth - 200).toString() + 'px';
+		renderer.domElement.style.height = (window.innerHeight).toString() + 'px';
+		document.body.appendChild( renderer.domElement );
+
+		// set up the camera so the z-axis is vertical
+		camera.rotation.order = 'ZYX';
+		camera.rotation.set(Math.PI/2, 0, Math.PI/2);
+
+		// make a container for the newly oriented camera to control its orientation
+		cameraContainer = new THREE.Object3D();
+		cameraContainer.add(camera);
+		cameraContainer.position.set(5, 0, 0);
+		cameraContainer.rotation.order = 'ZYX';
+		cameraContainer.ang = {'_phi': 0, '_theta': 0};
+		Object.defineProperty(cameraContainer.ang, 'phi', {
+				get: function() {return cameraContainer.ang._phi;},
+				set: function(phi_) {
+					var theta_
+					cameraContainer.ang._phi = phi_;
+					theta_ = cameraContainer.ang._theta;
+					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
+					cameraContainer.position.set(5 * Math.cos(phi_) * Math.cos(theta_), 5 * Math.sin(phi_) * Math.cos(theta_), 5 * Math.sin(theta_));
+				}
+			}
+		);
+		Object.defineProperty(cameraContainer.ang, 'theta', {
+				get: function() {return cameraContainer.ang._theta;},
+				set: function(theta_) {
+					var phi_
+					cameraContainer.ang._theta = theta_;
+					phi_ = cameraContainer.ang._phi;
+					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
+					cameraContainer.position.set(5 * Math.cos(phi_) * Math.cos(theta_), 5 * Math.sin(phi_) * Math.cos(theta_), 5 * Math.sin(theta_));
+				}
+			}
+		);
+		scene.add(cameraContainer);
+
+		// create objects
+		cube = new THREE.Mesh(
+			new THREE.BoxGeometry(1, 1, 1),
+			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.FlatShading})
+		);
+		cube.position.z = 4;
+		scene.add( cube );
+		
+		wireGeom = new THREE.Geometry();
+		wireGeom.vertices.push(new THREE.Vector3(-1, 0, 0));
+		wireGeom.vertices.push(new THREE.Vector3(1, 3, 3));
+		wireGeom.vertices.push(new THREE.Vector3(5, -2, 0));
+		wireMat = new THREE.LineBasicMaterial({color: 0xff00ff, shading: THREE.FlatShading});
+		wire = new THREE.Line(wireGeom, wireMat);
+		scene.add(wire);
+
+		// create lights
+		var light = new THREE.SpotLight( 0xffffff, 1.5 );
+		light.position.set( 400, 500, 2000 );
+		light.castShadow = true;
+		light.shadowCameraNear = 0;
+		light.shadowCameraFar = camera.far;
+		light.shadowCameraFov = 50;
+		light.shadowBias = -0.00022;
+		light.shadowDarkness = 0.5;
+		light.shadowMapWidth = 2048;
+		light.shadowMapHeight = 2048;
+		scene.add( light );
+
+		var ambientLight = new THREE.AmbientLight(0x202020);
+		scene.add(ambientLight);
+
+		window.addEventListener(
+			'resize',
+			function(event) {
+				// update aspect ratios
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.render(scene, camera);
+				},
+			false
+		);
+
+		var mouseDragStart;
+		mouseDragStart = {x:0, y:0, z:0};
+
+		var mouse2D = new THREE.Vector3(1, 1, 1);
+
+		document.addEventListener(
+			'mousedown',
+			function(event) {
+				// store the normalized mouse position
+				mouseDragStart.x = mouse2D.x;
+				mouseDragStart.y = mouse2D.y;
+				if (event.button === 0) {
+					lmbdown = true;
+				}
+			},
+			false
+		);
+
+		document.addEventListener(
+			'mouseup',
+			function(event) {
+				if (event.button === 0) {
+					lmbdown = false;
+				}
+			},
+			false
+		);
+
+		document.addEventListener(
+			'mousemove',
+			function(event) {
+				mouse2D.x = (event.clientX / window.innerWidth) * 2 - 1;
+				mouse2D.y = - (event.clientY / window.innerHeight) * 2 + 1;
+				var dx, dy;
+				dx = mouse2D.x - mouseDragStart.x;
+				dy = mouse2D.y - mouseDragStart.y;
+				mouseDragStart.x = mouse2D.x;
+				mouseDragStart.y = mouse2D.y;
+				if (!lmbdown) {
+					return;
+				}
+				cameraContainer.ang.phi -= dx * 150/180*Math.PI;
+				cameraContainer.ang.theta -= dy * 150/180*Math.PI;
+				renderer.render(scene, camera);
+			},
+			false
+		);
+
+		document.addEventListener(
+			'mousemove',
+			function(event) {
+				if (event.button === 1) {
+				}
+			}
+		);
+
+		document.addEventListener(
+			'keydown',
+			function(event) {
+				if (event.which === 39) {
+					cameraContainer.ang.phi += 0.04;
+					renderer.render(scene, camera);
+				} else if (event.which === 37) {
+					cameraContainer.ang.phi -= 0.04;
+					renderer.render(scene, camera);
+				} else if (event.which === 38) {
+					cameraContainer.ang.theta += 0.04;
+					renderer.render(scene, camera);
+				} else if (event.which === 40) {
+					cameraContainer.ang.theta -= 0.04;
+					renderer.render(scene, camera);
+				}
+			},
+			false
+		);
+
+		render = function() {
+			if (cube.position.z <= 0) {
+				// stop automatic rendering once the cube has reached the bottom
+				return;
+			}
+			cube.position.z -= 0.005;
+			setTimeout( function() {
+				requestAnimationFrame( render );
+			}, 3);
+			renderer.render(scene, camera);
+		}
+		render();
+		</script>
+	</body>
+</html>
