@@ -21,7 +21,6 @@
 		
 		// vertical split
 		var objectDetails = document.createElement('div');
-		objectDetails.innerHTML = 'hello';
 		objectDetails.style.cssFloat = 'left';
 		objectDetails.style.width = '200px';
 		objectDetails.style.backgroundColor = '#ffff00';
@@ -44,7 +43,7 @@
 		// make a container for the newly oriented camera to control its orientation
 		cameraContainer = new THREE.Object3D();
 		cameraContainer.add(camera);
-		cameraContainer.position.set(5, 0, 0);
+		cameraContainer.position.set(20, 0, 0);
 		cameraContainer.rotation.order = 'ZYX';
 		cameraContainer.ang = {'_phi': 0, '_theta': 0};
 		Object.defineProperty(cameraContainer.ang, 'phi', {
@@ -54,7 +53,7 @@
 					cameraContainer.ang._phi = phi_;
 					theta_ = cameraContainer.ang._theta;
 					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
-					cameraContainer.position.set(5 * Math.cos(phi_) * Math.cos(theta_), 5 * Math.sin(phi_) * Math.cos(theta_), 5 * Math.sin(theta_));
+					cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
 				}
 			}
 		);
@@ -65,7 +64,7 @@
 					cameraContainer.ang._theta = theta_;
 					phi_ = cameraContainer.ang._phi;
 					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
-					cameraContainer.position.set(5 * Math.cos(phi_) * Math.cos(theta_), 5 * Math.sin(phi_) * Math.cos(theta_), 5 * Math.sin(theta_));
+					cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
 				}
 			}
 		);
@@ -76,7 +75,7 @@
 			new THREE.BoxGeometry(1, 1, 1),
 			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.FlatShading})
 		);
-		cube.position.z = 4;
+		cube.position.z = 3;
 		scene.add( cube );
 		
 		wireGeom = new THREE.Geometry();
@@ -103,6 +102,73 @@
 		var ambientLight = new THREE.AmbientLight(0x202020);
 		scene.add(ambientLight);
 
+		var selectedObject = new THREE.Mesh(
+			new THREE.SphereGeometry(1),
+			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+		);
+		selectedObject.geometry.dynamic = true;
+		scene.add(selectedObject);
+		
+		var createInput = function(name, default_, onchange) {
+			currentInput[name] = default_;
+			var input;
+			input = document.createElement('div');
+			input.innerHTML = name + ':';
+			var inputField;
+			inputField = document.createElement('input');
+			inputField.type = 'number';
+			inputField.value = default_;
+			input.appendChild(inputField);
+			objectDetails.appendChild(input);
+			inputField.onchange = function() {
+				scene.remove(selectedObject);
+				selectedObject = new THREE.Mesh(
+					new THREE.SphereGeometry(parseFloat(this.value), 24, 18),
+					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+				);
+				scene.add(selectedObject);
+				renderer.render(scene, camera);
+			};
+			if (onchange) {
+				inputField.onchange = onchange;
+			}
+		};
+		
+		var currentInput = {};
+		
+		createInput(
+			'Radius',
+			'1',
+			function() {
+				currentInput['Radius'] = this.value;
+				scene.remove(selectedObject);
+				selectedObject = new THREE.Mesh(
+					new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+				);
+				selectedObject.position.z = parseFloat(currentInput['z']);
+				scene.add(selectedObject);
+				renderer.render(scene, camera);
+			}
+		);
+		
+		createInput(
+			'z',
+			'0',
+			function() {
+				currentInput['z'] = this.value;
+				scene.remove(selectedObject);
+				//geom.position.z = parseFloat(this.value);
+				selectedObject = new THREE.Mesh(
+					new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+				);
+				selectedObject.position.z = parseFloat(currentInput['z']);
+				scene.add(selectedObject);
+				renderer.render(scene, camera);
+			}
+		);
+		
 		window.addEventListener(
 			'resize',
 			function(event) {
@@ -190,19 +256,7 @@
 			},
 			false
 		);
-
-		render = function() {
-			if (cube.position.z <= 0) {
-				// stop automatic rendering once the cube has reached the bottom
-				return;
-			}
-			cube.position.z -= 0.005;
-			setTimeout( function() {
-				requestAnimationFrame( render );
-			}, 3);
-			renderer.render(scene, camera);
-		}
-		render();
+		renderer.render(scene, camera);
 		</script>
 	</body>
 </html>
