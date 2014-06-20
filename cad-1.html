@@ -18,18 +18,21 @@
 		// set the document style (CSS)
 		document.body.style.margin = '0px';
 		document.body.style.backgroundColor = '#eeeeee';
+		document.body.style.fontFamily = 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif';
+		document.body.style.fontSize = '16';
 		
 		// vertical split
 		var objectDetails = document.createElement('div');
 		objectDetails.style.cssFloat = 'left';
 		objectDetails.style.width = '200px';
-		objectDetails.style.backgroundColor = '#ffff00';
+		objectDetails.style.backgroundColor = '#dddddd';
 		document.body.appendChild(objectDetails);
 
 		// set up 3d view
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 50, (window.innerWidth - 200) / window.innerHeight, 0.1, 1000 );
-		renderer = new THREE.WebGLRenderer();
+		renderer = new THREE.WebGLRenderer({antialias: true});
+		renderer.setClearColor(0xf6f6f6, 1);
 		renderer.setSize(window.innerWidth - 200, window.innerHeight);
 		renderer.domElement.style.cssFloat = 'right';
 		renderer.domElement.style.width = (window.innerWidth - 200).toString() + 'px';
@@ -102,8 +105,9 @@
 		var ambientLight = new THREE.AmbientLight(0x202020);
 		scene.add(ambientLight);
 
+		// create empty geometry
 		var selectedObject = new THREE.Mesh(
-			new THREE.SphereGeometry(1),
+			new THREE.Geometry(),
 			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
 		);
 		selectedObject.geometry.dynamic = true;
@@ -113,25 +117,18 @@
 			currentInput[name] = default_;
 			var input;
 			input = document.createElement('div');
-			input.innerHTML = name + ':';
+			input.innerHTML = name + ': ';
+			input.style.margin = '5px';
 			var inputField;
 			inputField = document.createElement('input');
 			inputField.type = 'number';
+			// allow fractions as input
+			inputField.step = 'any';
 			inputField.value = default_;
+			inputField.style.width = '60px';
 			input.appendChild(inputField);
 			objectDetails.appendChild(input);
-			inputField.onchange = function() {
-				scene.remove(selectedObject);
-				selectedObject = new THREE.Mesh(
-					new THREE.SphereGeometry(parseFloat(this.value), 24, 18),
-					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
-				);
-				scene.add(selectedObject);
-				renderer.render(scene, camera);
-			};
-			if (onchange) {
-				inputField.onchange = onchange;
-			}
+			inputField.onchange = onchange;
 		};
 		
 		var currentInput = {};
@@ -149,12 +146,45 @@
 				'Height',
 				'1',
 				function() {
-					currentInput['Height'] = this.value;
+					currentInput['Height'] = parseFloat(this.value);
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(1, 1, parseFloat(currentInput['Height'])),
+						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
 					);
+					selectedObject.position.set(currentInput['Depth']/2, currentInput['Width']/2, currentInput['Height']/2);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+			
+			createInput(
+				'Width',
+				'1',
+				function() {
+					currentInput['Width'] = parseFloat(this.value);
+					scene.remove(selectedObject);
+					selectedObject = new THREE.Mesh(
+						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+					);
+					selectedObject.position.set(currentInput['Depth']/2, currentInput['Width']/2, currentInput['Height']/2);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+			
+			createInput(
+				'Depth',
+				1,
+				function() {
+					currentInput['Depth'] = parseFloat(this.value);
+					scene.remove(selectedObject);
+					selectedObject = new THREE.Mesh(
+						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+					);
+					selectedObject.position.set(currentInput['Depth']/2, currentInput['Width']/2, currentInput['Height']/2);
 					scene.add(selectedObject);
 					renderer.render(scene, camera);
 				}
