@@ -136,38 +136,68 @@
 		
 		var currentInput = {};
 		
-		createInput(
-			'Radius',
-			'1',
-			function() {
-				currentInput['Radius'] = this.value;
-				scene.remove(selectedObject);
-				selectedObject = new THREE.Mesh(
-					new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
-				);
-				selectedObject.position.z = parseFloat(currentInput['z']);
-				scene.add(selectedObject);
-				renderer.render(scene, camera);
+		var removeInputs = function() {
+			while (objectDetails.firstChild) {
+				objectDetails.removeChild(objectDetails.firstChild);
 			}
-		);
+		};
 		
-		createInput(
-			'z',
-			'0',
-			function() {
-				currentInput['z'] = this.value;
-				scene.remove(selectedObject);
-				//geom.position.z = parseFloat(this.value);
-				selectedObject = new THREE.Mesh(
-					new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-					new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
-				);
-				selectedObject.position.z = parseFloat(currentInput['z']);
-				scene.add(selectedObject);
-				renderer.render(scene, camera);
-			}
-		);
+		var activateBoxTool = function() {
+			removeInputs();
+			
+			createInput(
+				'Height',
+				'1',
+				function() {
+					currentInput['Height'] = this.value;
+					scene.remove(selectedObject);
+					selectedObject = new THREE.Mesh(
+						new THREE.BoxGeometry(1, 1, parseFloat(currentInput['Height'])),
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+					);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+		};
+		
+		var activateSpehereTool = function() {
+		
+			removeInputs();
+		
+			createInput(
+				'Radius',
+				'1',
+				function() {
+					currentInput['Radius'] = this.value;
+					scene.remove(selectedObject);
+					selectedObject = new THREE.Mesh(
+						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+					);
+					selectedObject.position.z = parseFloat(currentInput['z']);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+		
+			createInput(
+				'z',
+				'0',
+				function() {
+					currentInput['z'] = this.value;
+					scene.remove(selectedObject);
+					//geom.position.z = parseFloat(this.value);
+					selectedObject = new THREE.Mesh(
+						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+					);
+					selectedObject.position.z = parseFloat(currentInput['z']);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+		};
 		
 		window.addEventListener(
 			'resize',
@@ -252,6 +282,15 @@
 				} else if (event.which === 40) {
 					cameraContainer.ang.theta -= 0.04;
 					renderer.render(scene, camera);
+				} else if (event.which === 69) {
+					// e
+					activateSpehereTool();
+				} else if (event.which === 70) {
+					// f
+					activateBoxTool();
+				} else if (event.which === 71) {
+					// g
+					removeInputs();
 				}
 			},
 			false
