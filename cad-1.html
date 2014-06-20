@@ -22,11 +22,33 @@
 		document.body.style.fontSize = '16';
 		
 		// vertical split
+		var leftSidebar = document.createElement('div');
+		leftSidebar.style.cssFloat = 'left';
+		leftSidebar.style.width = '200px';
+		leftSidebar.style.backgroundColor = '#dddddd';
+		document.body.appendChild(leftSidebar);
+		
+		var toolSelector = document.createElement('select');
+		var t;
+		t = document.createElement('option');
+		t.text = t.value = 'Sphere';
+		toolSelector.add(t, 0);
+		t = document.createElement('option');
+		t.text = t.value = 'Box';
+		toolSelector.add(t, 0);
+		leftSidebar.appendChild(toolSelector);
+		
+		toolSelector.onchange = function() {
+			if (toolSelector.value === 'Sphere') {
+				activateSpehereTool();
+			} else if (toolSelector.value === 'Box') {
+				activateBoxTool();
+			}
+		};
+		
 		var objectDetails = document.createElement('div');
-		objectDetails.style.cssFloat = 'left';
-		objectDetails.style.width = '200px';
 		objectDetails.style.backgroundColor = '#dddddd';
-		document.body.appendChild(objectDetails);
+		leftSidebar.appendChild(objectDetails);
 
 		// set up 3d view
 		scene = new THREE.Scene();
@@ -312,15 +334,6 @@
 				} else if (event.which === 40) {
 					cameraContainer.ang.theta -= 0.04;
 					renderer.render(scene, camera);
-				} else if (event.which === 69) {
-					// e
-					activateSpehereTool();
-				} else if (event.which === 70) {
-					// f
-					activateBoxTool();
-				} else if (event.which === 71) {
-					// g
-					removeInputs();
 				} else if (event.which === 13) {
 					// enter
 					var newObject = selectedObject.clone();
