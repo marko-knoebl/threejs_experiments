@@ -291,6 +291,11 @@
 				} else if (event.which === 71) {
 					// g
 					removeInputs();
+				} else if (event.which === 13) {
+					// enter
+					var newObject = selectedObject.clone();
+					scene.add(newObject);
+					renderer.render(scene, camera);
 				}
 			},
 			false
