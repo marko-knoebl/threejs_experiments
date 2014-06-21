@@ -4,7 +4,7 @@
 		<title>My first Three.js app</title>
 	</head>
 	<body>
-		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+		<script src="http://threejs.org/build/three.min.js"></script>
 		<script>
 		"use strict";
 		// a simple viewer with camera controls which has the z-axis vertical
@@ -12,6 +12,26 @@
 		var scene, camera, renderer, render;
 		var wireGeom, wireMat, wire;
 		var cameraContainer;
+		
+		// this object represents the geometric model that is being edited
+		var geoDoc = {};
+		
+		// all geometric objects
+		geoDoc.objects = [];
+		
+		geoDoc.add = function(obj) {
+			// add an object to the document and update the view accordingly
+			this.objects.push(obj);
+			scene.add(obj);
+			renderer.render(scene, camera);
+		};
+		
+		geoDoc.rem = function(obj) {
+			var index = this.objects.indexOf(obj);
+			var toRemove = this.objects.splice(index, 1)[0];
+			scene.remove(toRemove);
+			renderer.render(scene, camera);
+		};
 		
 		var lmbdown; // left mouse button down
 
@@ -68,8 +88,7 @@
 		addButton.addEventListener('click', function() {
 			var newObject = selectedObject.clone();
 			newObject.material = mainMaterial;
-			scene.add(newObject);
-			renderer.render(scene, camera);
+			geoDoc.add(newObject);
 		});
 		
 		// set up 3d view
@@ -175,7 +194,6 @@
 			previewMaterial
 		);
 		selectedObject.geometry.dynamic = true;
-		scene.add(selectedObject);
 		
 		var currentInput = {};
 		
@@ -212,7 +230,7 @@
 				'1',
 				function() {
 					currentInput['Height'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -221,8 +239,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			
@@ -231,7 +248,7 @@
 				'1',
 				function() {
 					currentInput['Width'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -240,8 +257,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			
@@ -250,7 +266,7 @@
 				1,
 				function() {
 					currentInput['Depth'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -259,8 +275,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			
@@ -269,7 +284,7 @@
 				0,
 				function() {
 					currentInput['x'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -278,8 +293,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			createInput(
@@ -287,7 +301,7 @@
 				0,
 				function() {
 					currentInput['y'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -296,8 +310,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			createInput(
@@ -305,7 +318,7 @@
 				0,
 				function() {
 					currentInput['z'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
 						previewMaterial
@@ -314,8 +327,7 @@
 						currentInput['Depth']/2 + currentInput['x'],
 						currentInput['Width']/2 + currentInput['y'],
 						currentInput['Height']/2 + currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			selectedObject = new THREE.Mesh(
@@ -323,8 +335,7 @@
 				previewMaterial
 			);
 			selectedObject.position.set(0.5, 0.5, 0.5);
-			scene.add(selectedObject);
-			renderer.render(scene, camera);
+			geoDoc.add(selectedObject);
 		};
 		
 		var activateSphereTool = function() {
@@ -336,14 +347,13 @@
 				'1',
 				function() {
 					currentInput['Radius'] = this.value;
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
 						previewMaterial
 					);
 					selectedObject.position.z = parseFloat(currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			createInput(
@@ -351,15 +361,14 @@
 				'0',
 				function() {
 					currentInput['x'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					//geom.position.z = parseFloat(this.value);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
 						previewMaterial
 					);
 					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			createInput(
@@ -367,15 +376,14 @@
 				'0',
 				function() {
 					currentInput['y'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					//geom.position.z = parseFloat(this.value);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
 						previewMaterial
 					);
 					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			
@@ -384,23 +392,21 @@
 				'0',
 				function() {
 					currentInput['z'] = parseFloat(this.value);
-					scene.remove(selectedObject);
+					geoDoc.rem(selectedObject);
 					//geom.position.z = parseFloat(this.value);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
 						previewMaterial
 					);
 					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					scene.add(selectedObject);
-					renderer.render(scene, camera);
+					geoDoc.add(selectedObject);
 				}
 			);
 			selectedObject = new THREE.Mesh(
 				new THREE.SphereGeometry(1, 24, 18),
 				previewMaterial
 			);
-			scene.add(selectedObject);
-			renderer.render(scene, camera);
+			geoDoc.add(selectedObject);
 		};
 		
 		window.addEventListener(
