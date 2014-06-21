@@ -25,27 +25,34 @@
 		var leftSidebar = document.createElement('div');
 		leftSidebar.style.cssFloat = 'left';
 		leftSidebar.style.width = '200px';
-		leftSidebar.style.backgroundColor = '#dddddd';
+		leftSidebar.style.backgroundColor = '#eeeeee';
 		document.body.appendChild(leftSidebar);
 		
-		var toolSelector = document.createElement('select');
-		var t;
-		t = document.createElement('option');
-		t.text = t.value = 'Box';
-		toolSelector.add(t, 0);
-		t = document.createElement('option');
-		t.text = t.value = 'Sphere';
-		toolSelector.add(t, 0);
-		leftSidebar.appendChild(toolSelector);
-		
-		toolSelector.onchange = function() {
-			if (toolSelector.value === 'Sphere') {
-				activateSpehereTool();
-			} else if (toolSelector.value === 'Box') {
-				activateBoxTool();
-			}
-		};
+		var toolSelector = document.createElement('div');
 		toolSelector.style.textAlign = 'center';
+		toolSelector.style.backgroundColor = '#dddddd';
+		
+		var boxButton = document.createElement('button');
+		boxButton.style.margin = '10px';
+		boxButton.style.border = '0px';
+		boxButton.style.border = '0px';
+		boxButton.style.width = '50px';
+		boxButton.style.height = '50px';
+		boxButton.style.backgroundColor = '#cccccc';
+		boxButton.innerHTML = 'Box';
+		boxButton.onclick = function() {activateBoxTool();};
+		toolSelector.appendChild(boxButton);
+		
+		var sphereButton = document.createElement('button');
+		sphereButton.style.margin = '10px';
+		sphereButton.style.border = '0px';
+		sphereButton.style.width = '50px';
+		sphereButton.style.height = '50px';
+		sphereButton.style.backgroundColor = '#cccccc';
+		sphereButton.innerHTML = 'Sphere';
+		sphereButton.onclick = function() {activateSphereTool();};
+		toolSelector.appendChild(sphereButton);
+		leftSidebar.appendChild(toolSelector);
 		
 		var objectDetails = document.createElement('div');
 		objectDetails.style.backgroundColor = '#dddddd';
@@ -181,6 +188,7 @@
 			var inputField;
 			inputField = document.createElement('input');
 			inputField.type = 'number';
+			inputField.style.border = '0px';
 			// allow fractions as input
 			inputField.step = 'any';
 			inputField.value = default_;
@@ -310,9 +318,16 @@
 					renderer.render(scene, camera);
 				}
 			);
+			selectedObject = new THREE.Mesh(
+				new THREE.BoxGeometry(1, 1, 1),
+				previewMaterial
+			);
+			selectedObject.position.set(0.5, 0.5, 0.5);
+			scene.add(selectedObject);
+			renderer.render(scene, camera);
 		};
 		
-		var activateSpehereTool = function() {
+		var activateSphereTool = function() {
 		
 			removeInputs();
 		
@@ -380,6 +395,12 @@
 					renderer.render(scene, camera);
 				}
 			);
+			selectedObject = new THREE.Mesh(
+				new THREE.SphereGeometry(1, 24, 18),
+				previewMaterial
+			);
+			scene.add(selectedObject);
+			renderer.render(scene, camera);
 		};
 		
 		window.addEventListener(
