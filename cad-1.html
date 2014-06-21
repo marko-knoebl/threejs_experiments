@@ -60,6 +60,7 @@
 		buttonContainer.appendChild(addButton);
 		addButton.addEventListener('click', function() {
 			var newObject = selectedObject.clone();
+			newObject.material = mainMaterial;
 			scene.add(newObject);
 			renderer.render(scene, camera);
 		});
@@ -158,10 +159,13 @@
 		var ambientLight = new THREE.AmbientLight(0x505050);
 		scene.add(ambientLight);
 
+		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
+		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee});
+		
 		// create empty geometry
 		var selectedObject = new THREE.Mesh(
 			new THREE.Geometry(),
-			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading, ambient: 0x00ff00})
+			previewMaterial
 		);
 		selectedObject.geometry.dynamic = true;
 		scene.add(selectedObject);
@@ -203,7 +207,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading, ambient: 0x00ff00})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -222,7 +226,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -241,7 +245,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -260,7 +264,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -278,7 +282,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -296,7 +300,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -320,7 +324,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.z = parseFloat(currentInput['z']);
 					scene.add(selectedObject);
@@ -337,7 +341,7 @@
 					//geom.position.z = parseFloat(this.value);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						previewMaterial
 					);
 					selectedObject.position.z = parseFloat(currentInput['z']);
 					scene.add(selectedObject);
