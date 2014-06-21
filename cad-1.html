@@ -31,10 +31,10 @@
 		var toolSelector = document.createElement('select');
 		var t;
 		t = document.createElement('option');
-		t.text = t.value = 'Sphere';
+		t.text = t.value = 'Box';
 		toolSelector.add(t, 0);
 		t = document.createElement('option');
-		t.text = t.value = 'Box';
+		t.text = t.value = 'Sphere';
 		toolSelector.add(t, 0);
 		leftSidebar.appendChild(toolSelector);
 		
@@ -45,11 +45,25 @@
 				activateBoxTool();
 			}
 		};
+		toolSelector.style.textAlign = 'center';
 		
 		var objectDetails = document.createElement('div');
 		objectDetails.style.backgroundColor = '#dddddd';
 		leftSidebar.appendChild(objectDetails);
 
+		var buttonContainer = document.createElement('div');
+		buttonContainer.style.textAlign = 'center';
+		buttonContainer.style.margin = '8px';
+		var addButton = document.createElement('button');
+		addButton.innerHTML = 'Add';
+		leftSidebar.appendChild(buttonContainer);
+		buttonContainer.appendChild(addButton);
+		addButton.addEventListener('click', function() {
+			var newObject = selectedObject.clone();
+			scene.add(newObject);
+			renderer.render(scene, camera);
+		});
+		
 		// set up 3d view
 		scene = new THREE.Scene();
 		camera = new THREE.PerspectiveCamera( 50, (window.innerWidth - 200) / window.innerHeight, 0.1, 1000 );
@@ -141,16 +155,18 @@
 		light.shadowMapHeight = 2048;
 		scene.add( light );
 
-		var ambientLight = new THREE.AmbientLight(0x202020);
+		var ambientLight = new THREE.AmbientLight(0x505050);
 		scene.add(ambientLight);
 
 		// create empty geometry
 		var selectedObject = new THREE.Mesh(
 			new THREE.Geometry(),
-			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+			new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading, ambient: 0x00ff00})
 		);
 		selectedObject.geometry.dynamic = true;
 		scene.add(selectedObject);
+		
+		var currentInput = {};
 		
 		var createInput = function(name, default_, onchange) {
 			currentInput[name] = default_;
@@ -170,8 +186,6 @@
 			inputField.onchange = onchange;
 		};
 		
-		var currentInput = {};
-		
 		var removeInputs = function() {
 			while (objectDetails.firstChild) {
 				objectDetails.removeChild(objectDetails.firstChild);
@@ -189,7 +203,7 @@
 					scene.remove(selectedObject);
 					selectedObject = new THREE.Mesh(
 						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading})
+						new THREE.MeshPhongMaterial({color: 0x00ff00, shading:THREE.SmoothShading, ambient: 0x00ff00})
 					);
 					selectedObject.position.set(
 						currentInput['Depth']/2 + currentInput['x'],
@@ -407,15 +421,11 @@
 				} else if (event.which === 40) {
 					cameraContainer.ang.theta -= 0.04;
 					renderer.render(scene, camera);
-				} else if (event.which === 13) {
-					// enter
-					var newObject = selectedObject.clone();
-					scene.add(newObject);
-					renderer.render(scene, camera);
 				}
 			},
 			false
 		);
+		activateBoxTool();
 		renderer.render(scene, camera);
 		</script>
 	</body>
