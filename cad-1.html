@@ -331,19 +331,51 @@
 					renderer.render(scene, camera);
 				}
 			);
-		
 			createInput(
-				'z',
+				'x',
 				'0',
 				function() {
-					currentInput['z'] = this.value;
+					currentInput['x'] = parseFloat(this.value);
 					scene.remove(selectedObject);
 					//geom.position.z = parseFloat(this.value);
 					selectedObject = new THREE.Mesh(
 						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
 						previewMaterial
 					);
-					selectedObject.position.z = parseFloat(currentInput['z']);
+					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+			createInput(
+				'y',
+				'0',
+				function() {
+					currentInput['y'] = parseFloat(this.value);
+					scene.remove(selectedObject);
+					//geom.position.z = parseFloat(this.value);
+					selectedObject = new THREE.Mesh(
+						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+						previewMaterial
+					);
+					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
+					scene.add(selectedObject);
+					renderer.render(scene, camera);
+				}
+			);
+			
+			createInput(
+				'z',
+				'0',
+				function() {
+					currentInput['z'] = parseFloat(this.value);
+					scene.remove(selectedObject);
+					//geom.position.z = parseFloat(this.value);
+					selectedObject = new THREE.Mesh(
+						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
+						previewMaterial
+					);
+					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
 					scene.add(selectedObject);
 					renderer.render(scene, camera);
 				}
