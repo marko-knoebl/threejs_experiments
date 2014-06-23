@@ -45,53 +45,63 @@
 		var leftSidebar = document.createElement('div');
 		leftSidebar.style.cssFloat = 'left';
 		leftSidebar.style.width = '200px';
-		leftSidebar.style.backgroundColor = '#eeeeee';
+		leftSidebar.style.backgroundColor = '#ffffff';
 		document.body.appendChild(leftSidebar);
 		
 		var toolSelector = document.createElement('div');
-		toolSelector.style.textAlign = 'center';
-		toolSelector.style.backgroundColor = '#dddddd';
-		
-		var boxButton = document.createElement('button');
-		boxButton.style.margin = '10px';
-		boxButton.style.border = '0px';
-		boxButton.style.border = '0px';
-		boxButton.style.width = '50px';
-		boxButton.style.height = '50px';
-		boxButton.style.backgroundColor = '#cccccc';
-		boxButton.innerHTML = 'Box';
-		boxButton.onclick = function() {activateTool(boxTool)};
-		toolSelector.appendChild(boxButton);
-		
-		var sphereButton = document.createElement('button');
-		sphereButton.style.margin = '10px';
-		sphereButton.style.border = '0px';
-		sphereButton.style.width = '50px';
-		sphereButton.style.height = '50px';
-		sphereButton.style.backgroundColor = '#cccccc';
-		sphereButton.innerHTML = 'Sphere';
-		sphereButton.onclick = function() {activateTool(sphereTool)};
-		toolSelector.appendChild(sphereButton);
+		toolSelector.style.backgroundColor = '#ffffff';
+		toolSelector.style.margin = '3px';
 		leftSidebar.appendChild(toolSelector);
 		
+		var addToolButton = function(tool) {
+			var newButton;
+			newButton = document.createElement('button');
+			newButton.style.margin = '3px';
+			newButton.style.border = '0px';
+			newButton.style.width = '58px';
+			newButton.style.height = '58px';
+			newButton.style.backgroundColor = '#1ba1e2';
+			newButton.style.color = '#ffffff';
+			newButton.style.fontSize = '12';
+			newButton.innerHTML = tool.name;
+			newButton.tool = tool;
+			newButton.onclick = function() {activateTool(newButton.tool);};
+			toolSelector.appendChild(newButton);
+		}
+		
 		var toolOptions = document.createElement('div');
-		toolOptions.style.backgroundColor = '#dddddd';
+		toolOptions.style.backgroundColor = '#eeeeee';
+		toolOptions.style.fontSize = '12';
 		leftSidebar.appendChild(toolOptions);
 		
 		var buttonContainer = document.createElement('div');
 		buttonContainer.style.textAlign = 'center';
-		buttonContainer.style.margin = '8px';
+		buttonContainer.style.padding = '6px';
+		buttonContainer.style.backgroundColor = '#eeeeee';
 		var addButton = document.createElement('button');
 		var cancelButton = document.createElement('button');
 		addButton.innerHTML = 'Add';
 		cancelButton.innerHTML = 'Cancel';
+		addButton.style.borderWidth = '1px';
+		cancelButton.style.borderWidth = '1px';
+		addButton.style.borderColor = '#ffffff';
+		cancelButton.style.borderColor = '#ffffff';
+		addButton.style.borderStyle = 'solid';
+		cancelButton.style.borderStyle = 'solid';
+		addButton.style.margin = '3px';
+		cancelButton.style.margin = '3px';
+		addButton.style.backgroundColor = '#1ba1e2';
+		cancelButton.style.backgroundColor = '#126993';
+		addButton.style.color = '#ffffff';
+		cancelButton.style.color = '#ffffff';
 		buttonContainer.appendChild(addButton);
 		buttonContainer.appendChild(cancelButton);
 		leftSidebar.appendChild(buttonContainer);
 		addButton.addEventListener('click', function() {
-			var newObject = selectedObject.clone();
+			var newObject = preview.clone();
 			newObject.material = mainMaterial;
 			geoDoc.add(newObject);
+			activateTool(selectTool);
 		});
 		
 		// set up 3d view
@@ -188,8 +198,8 @@
 		var ambientLight = new THREE.AmbientLight(0x505050);
 		scene.add(ambientLight);
 		
-		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
-		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee});
+		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
+		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee});
 		
 		// create empty geometry
 		var selectedObject = new THREE.Mesh(
@@ -232,6 +242,56 @@
 			}
 		);
 		
+		var cylinderTool = new Tool(
+			'Cylinder',
+			{Radius: 1, Height: 1},
+			function() {
+				var newObj = new THREE.Mesh(
+					new THREE.CylinderGeometry(currentInput.Radius, currentInput.Radius, currentInput.Height, 24),
+					previewMaterial
+				);
+				newObj.position.y = currentInput.Height/2;
+				return newObj;
+			}
+		);
+		
+		var coneTool = new Tool(
+			'Cone',
+			{'Bottom Radius': 1, 'Top Radius': 0.5, Height: 1},
+			function() {
+				var newObj = new THREE.Mesh(
+					new THREE.CylinderGeometry(currentInput['Bottom Radius'], currentInput['Top Radius'], currentInput.Height, 24),
+					previewMaterial
+				);
+				newObj.position.y = currentInput.Height/2;
+				return newObj;
+			}
+		);
+		
+		var icosahedronTool = new Tool(
+			'Icosah.',
+			{Radius: 1,},
+			function() {
+				var newObj = new THREE.Mesh(
+					new THREE.IcosahedronGeometry(currentInput.Radius),
+					previewMaterial
+				);
+				return newObj;
+			}
+		);
+		
+		var selectTool = new Tool(
+			'Select',
+			{},
+			function() {return new THREE.Mesh(new THREE.Geometry(), new THREE.Material())}
+		);
+		
+		addToolButton(boxTool);
+		addToolButton(sphereTool);
+		addToolButton(cylinderTool);
+		addToolButton(coneTool);
+		addToolButton(icosahedronTool);
+		
 		var activeTool;
 		var preview;
 		
@@ -258,7 +318,8 @@
 				toolOptions.removeChild(toolOptions.firstChild);
 			}
 			
-			toolOptions.innerHTML = tool.name + ': ';
+			toolOptions.innerHTML = '<p style="font-size:18px">' + tool.name + ':</p>';
+			toolOptions.style.padding = '10px';
 			for (var inputName in tool.inputs) {
 				if (tool.inputs.hasOwnProperty(inputName)) {
 					var label = document.createElement('div');
@@ -267,7 +328,10 @@
 					var inputField = document.createElement('input');
 					inputField.type = 'number';
 					inputField.value = tool.inputs[inputName];
-					inputField.style.border = '0px';
+					inputField.style.borderWidth = '1px';
+					inputField.style.borderStyle = 'solid';
+					inputField.style.margin = '3px';
+					inputField.style.width = '80px';
 					currentInput[inputName] = parseFloat(inputField.value);
 					inputField.onchange = onchangeFactory(inputName, inputField);
 					
@@ -281,9 +345,9 @@
 			'resize',
 			function(event) {
 				// update aspect ratios
-				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.aspect = (window.innerWidth - 200) / window.innerHeight;
 				camera.updateProjectionMatrix();
-				renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.setSize((window.innerWidth - 200), window.innerHeight);
 				renderer.render(scene, camera);
 				},
 			false
