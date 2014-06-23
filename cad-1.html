@@ -34,7 +34,7 @@
 		};
 		
 		var lmbdown; // left mouse button down
-
+		
 		// set the document style (CSS)
 		document.body.style.margin = '0px';
 		document.body.style.backgroundColor = '#eeeeee';
@@ -60,7 +60,7 @@
 		boxButton.style.height = '50px';
 		boxButton.style.backgroundColor = '#cccccc';
 		boxButton.innerHTML = 'Box';
-		boxButton.onclick = function() {activateBoxTool();};
+		boxButton.onclick = function() {activateTool(boxTool)};
 		toolSelector.appendChild(boxButton);
 		
 		var sphereButton = document.createElement('button');
@@ -70,21 +70,24 @@
 		sphereButton.style.height = '50px';
 		sphereButton.style.backgroundColor = '#cccccc';
 		sphereButton.innerHTML = 'Sphere';
-		sphereButton.onclick = function() {activateSphereTool();};
+		sphereButton.onclick = function() {activateTool(sphereTool)};
 		toolSelector.appendChild(sphereButton);
 		leftSidebar.appendChild(toolSelector);
 		
-		var objectDetails = document.createElement('div');
-		objectDetails.style.backgroundColor = '#dddddd';
-		leftSidebar.appendChild(objectDetails);
-
+		var toolOptions = document.createElement('div');
+		toolOptions.style.backgroundColor = '#dddddd';
+		leftSidebar.appendChild(toolOptions);
+		
 		var buttonContainer = document.createElement('div');
 		buttonContainer.style.textAlign = 'center';
 		buttonContainer.style.margin = '8px';
 		var addButton = document.createElement('button');
+		var cancelButton = document.createElement('button');
 		addButton.innerHTML = 'Add';
-		leftSidebar.appendChild(buttonContainer);
+		cancelButton.innerHTML = 'Cancel';
 		buttonContainer.appendChild(addButton);
+		buttonContainer.appendChild(cancelButton);
+		leftSidebar.appendChild(buttonContainer);
 		addButton.addEventListener('click', function() {
 			var newObject = selectedObject.clone();
 			newObject.material = mainMaterial;
@@ -181,10 +184,10 @@
 		light.shadowMapWidth = 2048;
 		light.shadowMapHeight = 2048;
 		scene.add( light );
-
+		
 		var ambientLight = new THREE.AmbientLight(0x505050);
 		scene.add(ambientLight);
-
+		
 		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
 		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.SmoothShading, ambient: 0x0022ee});
 		
@@ -193,221 +196,85 @@
 			new THREE.Geometry(),
 			previewMaterial
 		);
-		selectedObject.geometry.dynamic = true;
+		//selectedObject.geometry.dynamic = true;
 		
 		var currentInput = {};
 		
-		var createInput = function(name, default_, onchange) {
-			currentInput[name] = default_;
-			var input;
-			input = document.createElement('div');
-			input.innerHTML = name + ': ';
-			input.style.margin = '5px';
-			var inputField;
-			inputField = document.createElement('input');
-			inputField.type = 'number';
-			inputField.style.border = '0px';
-			// allow fractions as input
-			inputField.step = 'any';
-			inputField.value = default_;
-			inputField.style.width = '60px';
-			input.appendChild(inputField);
-			objectDetails.appendChild(input);
-			inputField.onchange = onchange;
-		};
+		var Tool = function(name, inputs, getShape) {
+			this.name = name;
+			this.inputs = inputs;
+			this.getShape = getShape;
+		}
+		this.prototype = new Object(); // This could be left out 
 		
-		var removeInputs = function() {
-			while (objectDetails.firstChild) {
-				objectDetails.removeChild(objectDetails.firstChild);
+		var boxTool = new Tool(
+			'Box',
+			{Depth: 1, Width: 1, Height: 1},
+			function() {
+				var newObj = new THREE.Mesh(
+					new THREE.BoxGeometry(currentInput.Depth, currentInput.Width, currentInput.Height),
+					previewMaterial
+				);
+				return newObj;
 			}
+		);
+		
+		var sphereTool = new Tool(
+			'Sphere',
+			{Radius: 1},
+			function() {
+				var newObj = new THREE.Mesh(
+					new THREE.SphereGeometry(currentInput.Radius, 24, 18),
+					previewMaterial
+				);
+				return newObj;
+			}
+		);
+		
+		var activeTool;
+		var preview;
+		
+		var onInputChange = function() {
+			// update the preview
+			scene.remove(preview);
+			preview = activeTool.getShape();
+			scene.add(preview);
+			renderer.render(scene, camera);
 		};
 		
-		var activateBoxTool = function() {
-			removeInputs();
-			
-			createInput(
-				'Height',
-				'1',
-				function() {
-					currentInput['Height'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			
-			createInput(
-				'Width',
-				'1',
-				function() {
-					currentInput['Width'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			
-			createInput(
-				'Depth',
-				1,
-				function() {
-					currentInput['Depth'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			
-			createInput(
-				'x',
-				0,
-				function() {
-					currentInput['x'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			createInput(
-				'y',
-				0,
-				function() {
-					currentInput['y'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			createInput(
-				'z',
-				0,
-				function() {
-					currentInput['z'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.BoxGeometry(currentInput['Depth'], currentInput['Width'], currentInput['Height']),
-						previewMaterial
-					);
-					selectedObject.position.set(
-						currentInput['Depth']/2 + currentInput['x'],
-						currentInput['Width']/2 + currentInput['y'],
-						currentInput['Height']/2 + currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			selectedObject = new THREE.Mesh(
-				new THREE.BoxGeometry(1, 1, 1),
-				previewMaterial
-			);
-			selectedObject.position.set(0.5, 0.5, 0.5);
-			geoDoc.add(selectedObject);
+		var onchangeFactory = function(inputName, inputField) {
+			return function() {
+				currentInput[inputName] = parseFloat(inputField.value);
+				onInputChange();
+			};
 		};
 		
-		var activateSphereTool = function() {
-		
-			removeInputs();
-		
-			createInput(
-				'Radius',
-				'1',
-				function() {
-					currentInput['Radius'] = this.value;
-					geoDoc.rem(selectedObject);
-					selectedObject = new THREE.Mesh(
-						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						previewMaterial
-					);
-					selectedObject.position.z = parseFloat(currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			createInput(
-				'x',
-				'0',
-				function() {
-					currentInput['x'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					//geom.position.z = parseFloat(this.value);
-					selectedObject = new THREE.Mesh(
-						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						previewMaterial
-					);
-					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
-			createInput(
-				'y',
-				'0',
-				function() {
-					currentInput['y'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					//geom.position.z = parseFloat(this.value);
-					selectedObject = new THREE.Mesh(
-						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						previewMaterial
-					);
-					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					geoDoc.add(selectedObject);
-				}
-			);
+		var activateTool = function(tool) {
+			activeTool = tool;
 			
-			createInput(
-				'z',
-				'0',
-				function() {
-					currentInput['z'] = parseFloat(this.value);
-					geoDoc.rem(selectedObject);
-					//geom.position.z = parseFloat(this.value);
-					selectedObject = new THREE.Mesh(
-						new THREE.SphereGeometry(parseFloat(currentInput['Radius']), 24, 18),
-						previewMaterial
-					);
-					selectedObject.position.set(currentInput['x'], currentInput['y'], currentInput['z']);
-					geoDoc.add(selectedObject);
+			// remove all inputs
+			while (toolOptions.firstChild) {
+				toolOptions.removeChild(toolOptions.firstChild);
+			}
+			
+			toolOptions.innerHTML = tool.name + ': ';
+			for (var inputName in tool.inputs) {
+				if (tool.inputs.hasOwnProperty(inputName)) {
+					var label = document.createElement('div');
+					label.innerHTML = inputName;
+					toolOptions.appendChild(label);
+					var inputField = document.createElement('input');
+					inputField.type = 'number';
+					inputField.value = tool.inputs[inputName];
+					inputField.style.border = '0px';
+					currentInput[inputName] = parseFloat(inputField.value);
+					inputField.onchange = onchangeFactory(inputName, inputField);
+					
+					toolOptions.appendChild(inputField);
 				}
-			);
-			selectedObject = new THREE.Mesh(
-				new THREE.SphereGeometry(1, 24, 18),
-				previewMaterial
-			);
-			geoDoc.add(selectedObject);
-		};
+			}
+			onInputChange();
+		}
 		
 		window.addEventListener(
 			'resize',
@@ -448,7 +315,7 @@
 			},
 			false
 		);
-
+		
 		renderer.domElement.addEventListener(
 			'mousemove',
 			function(event) {
@@ -468,7 +335,7 @@
 			},
 			false
 		);
-
+		
 		document.addEventListener(
 			'keydown',
 			function(event) {
