@@ -215,6 +215,7 @@
 					new THREE.BoxGeometry(currentInput.Depth, currentInput.Width, currentInput.Height),
 					previewMaterial
 				);
+				newObj.position.set(currentInput.Depth/2, currentInput.Width/2, currentInput.Height/2);
 				return newObj;
 			}
 		);
