@@ -103,6 +103,9 @@
 			geoDoc.add(newObject);
 			activateTool(selectTool);
 		});
+		cancelButton.addEventListener('click', function() {
+			activateTool(selectTool);
+		});
 		
 		// set up 3d view
 		scene = new THREE.Scene();
