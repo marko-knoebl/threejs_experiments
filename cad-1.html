@@ -5,10 +5,41 @@
 	</head>
 	<body>
 		<script src="http://threejs.org/build/three.min.js"></script>
+		<script src="three.js"></script>
 		<script>
 		"use strict";
 		// a simple viewer with camera controls which has the z-axis vertical
-
+		
+		
+		
+		var createButton = function(text, onclick) {
+			var button = document.createElement('button');
+			button.style.margin = '3px';
+			button.style.border = '0px';
+			button.style.width = '58px';
+			button.style.backgroundColor = '#1ba1e2';
+			button.style.color = '#ffffff';
+			button.style.fontSize = '12';
+			button.innerHTML = text;
+			button.onclick = onclick;
+			return button;
+		}
+		
+		var createInputField = function(type, default_, onchange) {
+			var inputField = document.createElement('input');
+			inputField.type = type;
+			inputField.value = default_;
+			inputField.style.borderWidth = '1px';
+			inputField.style.borderStyle = 'solid';
+			inputField.style.margin = '3px';
+			inputField.style.width = '80px';
+			if (onchange) {
+				inputField.onchange = onchange;
+			}
+			return inputField;
+		};
+		
+		
 		var scene, camera, renderer, render;
 		var wireGeom, wireMat, wire;
 		var cameraContainer;
@@ -55,17 +86,11 @@
 		
 		var addToolButton = function(tool) {
 			var newButton;
-			newButton = document.createElement('button');
-			newButton.style.margin = '3px';
-			newButton.style.border = '0px';
+			newButton = createButton(tool.name);
 			newButton.style.width = '58px';
 			newButton.style.height = '58px';
-			newButton.style.backgroundColor = '#1ba1e2';
-			newButton.style.color = '#ffffff';
 			newButton.style.fontSize = '12';
-			newButton.innerHTML = tool.name;
-			newButton.tool = tool;
-			newButton.onclick = function() {activateTool(newButton.tool);};
+			newButton.onclick = function() {activateTool(tool);};
 			toolSelector.appendChild(newButton);
 		}
 		
@@ -74,38 +99,54 @@
 		toolOptions.style.fontSize = '12';
 		leftSidebar.appendChild(toolOptions);
 		
-		var buttonContainer = document.createElement('div');
-		buttonContainer.style.textAlign = 'center';
-		buttonContainer.style.padding = '6px';
-		buttonContainer.style.backgroundColor = '#eeeeee';
-		var addButton = document.createElement('button');
-		var cancelButton = document.createElement('button');
-		addButton.innerHTML = 'Add';
-		cancelButton.innerHTML = 'Cancel';
-		addButton.style.borderWidth = '1px';
-		cancelButton.style.borderWidth = '1px';
-		addButton.style.borderColor = '#ffffff';
-		cancelButton.style.borderColor = '#ffffff';
-		addButton.style.borderStyle = 'solid';
-		cancelButton.style.borderStyle = 'solid';
-		addButton.style.margin = '3px';
-		cancelButton.style.margin = '3px';
-		addButton.style.backgroundColor = '#1ba1e2';
-		cancelButton.style.backgroundColor = '#126993';
-		addButton.style.color = '#ffffff';
-		cancelButton.style.color = '#ffffff';
-		buttonContainer.appendChild(addButton);
-		buttonContainer.appendChild(cancelButton);
-		leftSidebar.appendChild(buttonContainer);
-		addButton.addEventListener('click', function() {
-			var newObject = preview.clone();
-			newObject.material = mainMaterial;
-			geoDoc.add(newObject);
-			activateTool(selectTool);
-		});
-		cancelButton.addEventListener('click', function() {
-			activateTool(selectTool);
-		});
+		var objectDetailsContainer;
+		var objectDetails;
+		var objectDetailsButtons;
+		var createObjectDetails = function() {
+			objectDetailsContainer = document.createElement('div');
+			leftSidebar.appendChild(objectDetailsContainer);
+			
+			objectDetails = document.createElement('div');
+			objectDetails.style.backgroundColor = '#eeeeee';
+			objectDetails.style.fontSize = '12';
+			objectDetailsContainer.appendChild(objectDetails);
+			
+			objectDetailsButtons = document.createElement('div');
+			objectDetailsButtons.style.backgroundColor = '#eeeeee';
+			objectDetailsButtons.appendChild(createButton('OK'));
+			objectDetailsButtons.appendChild(createButton('Cancel'));
+			objectDetailsContainer.appendChild(objectDetailsButtons);
+		};
+		
+		var devArea = document.createElement('div');
+		devArea.innerHTML = 'ttt';
+		leftSidebar.appendChild(devArea);
+		
+		var addButtonContainer = function() {
+			var buttonContainer = document.createElement('div');
+			buttonContainer.style.textAlign = 'center';
+			buttonContainer.style.padding = '6px';
+			buttonContainer.style.backgroundColor = '#eeeeee';
+			leftSidebar.appendChild(buttonContainer);
+			
+			var addButton = createButton(
+				'Add',
+				function() {
+					var newObject = preview.clone();
+					newObject.material = mainMaterial;
+					geoDoc.add(newObject);
+					activateTool(selectTool);
+				}
+			)
+			buttonContainer.appendChild(addButton);
+			var cancelButton = createButton(
+				'Cancel',
+				function() {
+					activateTool(selectTool);
+				}
+			);
+			buttonContainer.appendChild(cancelButton);
+		};
 		
 		// set up 3d view
 		scene = new THREE.Scene();
@@ -204,12 +245,10 @@
 		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
 		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee});
 		
-		// create empty geometry
-		var selectedObject = new THREE.Mesh(
-			new THREE.Geometry(),
-			previewMaterial
-		);
-		//selectedObject.geometry.dynamic = true;
+		// set up ray picker
+		var projector = new THREE.Projector();
+		
+		var selectedObject;
 		
 		var currentInput = {};
 		
@@ -306,9 +345,9 @@
 			renderer.render(scene, camera);
 		};
 		
-		var onchangeFactory = function(inputName, inputField) {
+		var onchangeFactory = function(inputName) {
 			return function() {
-				currentInput[inputName] = parseFloat(inputField.value);
+				currentInput[inputName] = parseFloat(this.value);
 				onInputChange();
 			};
 		};
@@ -328,21 +367,57 @@
 					var label = document.createElement('div');
 					label.innerHTML = inputName;
 					toolOptions.appendChild(label);
-					var inputField = document.createElement('input');
-					inputField.type = 'number';
-					inputField.value = tool.inputs[inputName];
-					inputField.style.borderWidth = '1px';
-					inputField.style.borderStyle = 'solid';
-					inputField.style.margin = '3px';
-					inputField.style.width = '80px';
-					currentInput[inputName] = parseFloat(inputField.value);
-					inputField.onchange = onchangeFactory(inputName, inputField);
-					
-					toolOptions.appendChild(inputField);
+					currentInput[inputName] = parseFloat(tool.inputs[inputName]);
+					toolOptions.appendChild(
+						createInputField('number', tool.inputs[inputName], onchangeFactory(inputName))
+					);
 				}
 			}
 			onInputChange();
 		}
+		
+		var originalPosition = {x: 0, y: 0, z: 0};
+		
+		var makeSelectionChangedHandler = function(name) {
+			return function() {
+				selectedObject.position[name] = originalPosition[name] + parseFloat(this.value);
+				renderer.render(scene, camera);
+			};
+		};
+		
+		var onSelectionChanged = function() {
+			if (selectedObject === null) {
+				devArea.innerHTML = 'null';
+			} else {
+				originalPosition.x = selectedObject.position.x;
+				originalPosition.y = selectedObject.position.y;
+				originalPosition.z = selectedObject.position.z;
+				devArea.innerHTML = 'obj';
+				
+				
+				// remove all inputs
+				while (objectDetails.firstChild) {
+					objectDetails.removeChild(objectDetails.firstChild);
+				}
+				
+				for (var i = 0; i < 3; i++) {
+					var name = ['x', 'y', 'z'][i];
+					var label = document.createElement('div');
+					label.innerHTML = name;
+				
+					objectDetails.appendChild(label);
+					
+					var fn = makeSelectionChangedHandler(name);
+					
+					var inputField = createInputField(
+						'number',
+						0,
+						fn
+					);
+					objectDetails.appendChild(inputField);
+				}
+			}
+		};
 		
 		window.addEventListener(
 			'resize',
@@ -355,16 +430,21 @@
 				},
 			false
 		);
-
-		var mouseDragStart;
-		mouseDragStart = {x:0, y:0, z:0};
+		
+		// location where the current mouse drag started
+		var mouseDragStart = {x:0, y:0, z:0};
+		// location of the last mouse position during the current drag
+		var mouseDragLast = {x:0, y:0, z:0};
 
 		var mouse2D = new THREE.Vector3(1, 1, 1);
 
 		document.addEventListener(
 			'mousedown',
 			function(event) {
+				mousemoved = false;
 				// store the normalized mouse position
+				mouseDragLast.x = mouse2D.x;
+				mouseDragLast.y = mouse2D.y;
 				mouseDragStart.x = mouse2D.x;
 				mouseDragStart.y = mouse2D.y;
 				if (event.button === 0) {
@@ -373,7 +453,10 @@
 			},
 			false
 		);
-
+		
+		// track whether the mouse was moved after the last mousedown to track clicks
+		var mousemoved = false;
+		
 		document.addEventListener(
 			'mouseup',
 			function(event) {
@@ -385,15 +468,45 @@
 		);
 		
 		renderer.domElement.addEventListener(
+			'mouseup',
+			function(event) {
+				if (event.button === 0) {
+					lmbdown = false;
+					var distanceMoved = Math.sqrt(Math.pow(mouseDragStart.x - mouse2D.x, 2) + Math.pow(mouseDragStart.y - mouse2D.y, 2));
+					if (distanceMoved < 1/50) {
+						// the user has not moved the mouse by more than 1/50 of the screen width
+						if (activeTool === selectTool) {
+							var ray = projector.pickingRay(mouse2D, camera);
+							var intersects = ray.intersectObjects(geoDoc.objects);
+							if (selectedObject) {
+								selectedObject.material = mainMaterial;
+							}
+							if (intersects[0]) {
+								selectedObject = intersects[0].object;
+								selectedObject.material = previewMaterial;
+							} else {
+								selectedObject = null;
+							}
+							renderer.render(scene, camera);
+							onSelectionChanged();
+						}
+					}
+				}
+			},
+			false
+		);
+		
+		renderer.domElement.addEventListener(
 			'mousemove',
 			function(event) {
-				mouse2D.x = (event.clientX / window.innerWidth) * 2 - 1;
-				mouse2D.y = - (event.clientY / window.innerHeight) * 2 + 1;
+				mousemoved = true;
+				mouse2D.x = ((event.clientX-200) / renderer.domElement.width) * 2 - 1;
+				mouse2D.y = - (event.clientY / renderer.domElement.height) * 2 + 1;
 				var dx, dy;
-				dx = mouse2D.x - mouseDragStart.x;
-				dy = mouse2D.y - mouseDragStart.y;
-				mouseDragStart.x = mouse2D.x;
-				mouseDragStart.y = mouse2D.y;
+				dx = mouse2D.x - mouseDragLast.x;
+				dy = mouse2D.y - mouseDragLast.y;
+				mouseDragLast.x = mouse2D.x;
+				mouseDragLast.y = mouse2D.y;
 				if (!lmbdown) {
 					return;
 				}
@@ -423,6 +536,20 @@
 			},
 			false
 		);
+		
+		// from Javascript: the Definitve Guide, ed 6: 14.6
+		window.onerror = function(msg, url, line) {
+			if (onerror.num++ < onerror.max) {
+				alert('ERROR: ' + msg + '\n' + url + ':' + line);
+				return true;
+			}
+		};
+		onerror.max = 3;
+		onerror.num = 0;
+		
+		createObjectDetails();
+		addButtonContainer();
+		
 		renderer.render(scene, camera);
 		</script>
 	</body>
