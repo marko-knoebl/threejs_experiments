@@ -10,125 +10,104 @@
 		"use strict";
 		// a simple viewer with camera controls which has the z-axis vertical
 		
-		
-		
-		var createButton = function(text, onclick) {
-			var button = document.createElement('button');
-			button.style.margin = '3px';
-			button.style.border = '0px';
-			button.style.width = '58px';
-			button.style.backgroundColor = '#1ba1e2';
-			button.style.color = '#ffffff';
-			button.style.fontSize = '12';
-			button.innerHTML = text;
-			button.onclick = onclick;
-			return button;
-		}
-		
-		var createInputField = function(type, default_, onchange) {
-			var inputField = document.createElement('input');
-			inputField.type = type;
-			inputField.value = default_;
-			inputField.style.borderWidth = '1px';
-			inputField.style.borderStyle = 'solid';
-			inputField.style.margin = '3px';
-			inputField.style.width = '80px';
-			if (onchange) {
-				inputField.onchange = onchange;
+		// gui helper functions
+		var createButton, addToolButton, createInputField;
+		(function() {
+			createButton = function(text, onclick) {
+				var button = document.createElement('button');
+				button.style.margin = '3px';
+				button.style.border = '0px';
+				button.style.width = '58px';
+				button.style.backgroundColor = '#1ba1e2';
+				button.style.color = '#ffffff';
+				button.style.fontSize = '12';
+				button.innerHTML = text;
+				button.onclick = onclick;
+				return button;
 			}
-			return inputField;
-		};
+			
+			addToolButton = function(tool) {
+				var newButton;
+				newButton = createButton(tool.name);
+				newButton.style.width = '58px';
+				newButton.style.height = '58px';
+				newButton.style.fontSize = '12';
+				newButton.onclick = function() {activateTool(tool);};
+				gui.toolSelector.appendChild(newButton);
+			}
+			
+			createInputField = function(type, default_, onchange) {
+				var inputField = document.createElement('input');
+				inputField.type = type;
+				inputField.value = default_;
+				inputField.style.borderWidth = '1px';
+				inputField.style.borderStyle = 'solid';
+				inputField.style.margin = '3px';
+				inputField.style.width = '80px';
+				if (onchange) {
+					inputField.onchange = onchange;
+				}
+				return inputField;
+			};
+		})();
 		
-		
-		var scene, camera, renderer, render;
 		var wireGeom, wireMat, wire;
-		var cameraContainer;
 		
 		// this object represents the geometric model that is being edited
-		var geoDoc = {};
-		
-		// all geometric objects
-		geoDoc.objects = [];
-		
-		geoDoc.add = function(obj) {
-			// add an object to the document and update the view accordingly
-			this.objects.push(obj);
-			scene.add(obj);
-			renderer.render(scene, camera);
-		};
-		
-		geoDoc.rem = function(obj) {
-			var index = this.objects.indexOf(obj);
-			var toRemove = this.objects.splice(index, 1)[0];
-			scene.remove(toRemove);
-			renderer.render(scene, camera);
-		};
+		var geoDoc;
+		(function() {
+			geoDoc = {}
+			// all geometric objects
+			geoDoc.objects = [];
+			
+			geoDoc.add = function(obj) {
+				// add an object to the document and update the view accordingly
+				this.objects.push(obj);
+				scene.add(obj);
+				renderer.render(scene, camera);
+			};
+			
+			geoDoc.rem = function(obj) {
+				var index = this.objects.indexOf(obj);
+				var toRemove = this.objects.splice(index, 1)[0];
+				scene.remove(toRemove);
+				renderer.render(scene, camera);
+			};
+		})();
 		
 		var lmbdown; // left mouse button down
 		
-		// set the document style (CSS)
-		document.body.style.margin = '0px';
-		document.body.style.backgroundColor = '#eeeeee';
-		document.body.style.fontFamily = 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif';
-		document.body.style.fontSize = '16';
-		
-		// vertical split
-		var leftSidebar = document.createElement('div');
-		leftSidebar.style.cssFloat = 'left';
-		leftSidebar.style.width = '200px';
-		leftSidebar.style.backgroundColor = '#ffffff';
-		document.body.appendChild(leftSidebar);
-		
-		var toolSelector = document.createElement('div');
-		toolSelector.style.backgroundColor = '#ffffff';
-		toolSelector.style.margin = '3px';
-		leftSidebar.appendChild(toolSelector);
-		
-		var addToolButton = function(tool) {
-			var newButton;
-			newButton = createButton(tool.name);
-			newButton.style.width = '58px';
-			newButton.style.height = '58px';
-			newButton.style.fontSize = '12';
-			newButton.onclick = function() {activateTool(tool);};
-			toolSelector.appendChild(newButton);
-		}
-		
-		var toolOptions = document.createElement('div');
-		toolOptions.style.backgroundColor = '#eeeeee';
-		toolOptions.style.fontSize = '12';
-		leftSidebar.appendChild(toolOptions);
-		
-		var objectDetailsContainer;
-		var objectDetails;
-		var objectDetailsButtons;
-		var createObjectDetails = function() {
-			objectDetailsContainer = document.createElement('div');
-			leftSidebar.appendChild(objectDetailsContainer);
+		// initialize gui elements
+		var gui = {};
+		(function() {
+			// set the document style (CSS)
+			document.body.style.margin = '0px';
+			document.body.style.backgroundColor = '#eeeeee';
+			document.body.style.fontFamily = 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif';
+			document.body.style.fontSize = '16';
 			
-			objectDetails = document.createElement('div');
-			objectDetails.style.backgroundColor = '#eeeeee';
-			objectDetails.style.fontSize = '12';
-			objectDetailsContainer.appendChild(objectDetails);
+			// vertical split
+			gui.leftSidebar = document.createElement('div');
+			gui.leftSidebar.style.cssFloat = 'left';
+			gui.leftSidebar.style.width = '200px';
+			gui.leftSidebar.style.backgroundColor = '#ffffff';
+			document.body.appendChild(gui.leftSidebar);
 			
-			objectDetailsButtons = document.createElement('div');
-			objectDetailsButtons.style.backgroundColor = '#eeeeee';
-			objectDetailsButtons.appendChild(createButton('OK'));
-			objectDetailsButtons.appendChild(createButton('Cancel'));
-			objectDetailsContainer.appendChild(objectDetailsButtons);
-		};
-		
-		var devArea = document.createElement('div');
-		devArea.innerHTML = 'ttt';
-		leftSidebar.appendChild(devArea);
-		
-		var addButtonContainer = function() {
-			var buttonContainer = document.createElement('div');
-			buttonContainer.style.textAlign = 'center';
-			buttonContainer.style.padding = '6px';
-			buttonContainer.style.backgroundColor = '#eeeeee';
-			leftSidebar.appendChild(buttonContainer);
+			gui.toolSelector = document.createElement('div');
+			gui.toolSelector.style.backgroundColor = '#ffffff';
+			gui.toolSelector.style.margin = '3px';
+			gui.leftSidebar.appendChild(gui.toolSelector);
 			
+			gui.toolOptionsContainer = document.createElement('div');
+			gui.leftSidebar.appendChild(gui.toolOptionsContainer);
+			gui.toolOptions = document.createElement('div');
+			gui.toolOptions.style.backgroundColor = '#eeeeee';
+			gui.toolOptions.style.fontSize = '12';
+			gui.toolOptionsContainer.appendChild(gui.toolOptions);
+			gui.toolButtons = document.createElement('div');
+			gui.toolButtons.style.textAlign = 'center';
+			gui.toolButtons.style.padding = '6px';
+			gui.toolButtons.style.backgroundColor = '#eeeeee';
 			var addButton = createButton(
 				'Add',
 				function() {
@@ -138,109 +117,136 @@
 					activateTool(selectTool);
 				}
 			)
-			buttonContainer.appendChild(addButton);
+			gui.toolButtons.appendChild(addButton);
 			var cancelButton = createButton(
 				'Cancel',
 				function() {
 					activateTool(selectTool);
 				}
 			);
-			buttonContainer.appendChild(cancelButton);
-		};
+			gui.toolButtons.appendChild(cancelButton);
+			gui.toolOptionsContainer.appendChild(gui.toolButtons);
+			
+			gui.objectDetailsContainer = document.createElement('div');
+			gui.leftSidebar.appendChild(gui.objectDetailsContainer);
+			
+			gui.objectDetails = document.createElement('div');
+			gui.objectDetails.style.backgroundColor = '#eeeeee';
+			gui.objectDetails.style.fontSize = '12';
+			gui.objectDetailsContainer.appendChild(gui.objectDetails);
+			
+			gui.objectDetailsButtons = document.createElement('div');
+			gui.objectDetailsButtons.style.backgroundColor = '#eeeeee';
+			gui.objectDetailsButtons.appendChild(createButton('OK'));
+			gui.objectDetailsButtons.appendChild(createButton('Cancel'));
+			gui.objectDetailsContainer.appendChild(gui.objectDetailsButtons);
+			
+			gui.devArea = document.createElement('div');
+			gui.devArea.innerHTML = 'ttt';
+			gui.leftSidebar.appendChild(gui.devArea);
+		})();
+		
+		// create renderer
+		var renderer;
+		(function() {
+			renderer = new THREE.WebGLRenderer({antialias: true});
+			renderer.setClearColor(0xf6f6f6, 1);
+			renderer.setSize(window.innerWidth - 200, window.innerHeight);
+			renderer.domElement.style.cssFloat = 'right';
+			renderer.domElement.style.width = (window.innerWidth - 200).toString() + 'px';
+			renderer.domElement.style.height = (window.innerHeight).toString() + 'px';
+			document.body.appendChild( renderer.domElement );
+		})();
 		
 		// set up 3d view
-		scene = new THREE.Scene();
-		camera = new THREE.PerspectiveCamera( 50, (window.innerWidth - 200) / window.innerHeight, 0.1, 1000 );
-		renderer = new THREE.WebGLRenderer({antialias: true});
-		renderer.setClearColor(0xf6f6f6, 1);
-		renderer.setSize(window.innerWidth - 200, window.innerHeight);
-		renderer.domElement.style.cssFloat = 'right';
-		renderer.domElement.style.width = (window.innerWidth - 200).toString() + 'px';
-		renderer.domElement.style.height = (window.innerHeight).toString() + 'px';
-		document.body.appendChild( renderer.domElement );
+		var scene, camera, cameraContainer, renderer, render;
+		(function() {
+			scene = new THREE.Scene();
+			camera = new THREE.PerspectiveCamera( 50, (renderer.domElement.clientWidth) / renderer.domElement.clientHeight, 0.1, 1000 );
 
-		// set up the camera so the z-axis is vertical
-		camera.rotation.order = 'ZYX';
-		camera.rotation.set(Math.PI/2, 0, Math.PI/2);
+			// set up the camera so the z-axis is vertical
+			camera.rotation.order = 'ZYX';
+			camera.rotation.set(Math.PI/2, 0, Math.PI/2);
 
-		// make a container for the newly oriented camera to control its orientation
-		cameraContainer = new THREE.Object3D();
-		cameraContainer.add(camera);
-		cameraContainer.position.set(20, 0, 0);
-		cameraContainer.rotation.order = 'ZYX';
-		cameraContainer.ang = {'_phi': 0, '_theta': 0};
-		Object.defineProperty(cameraContainer.ang, 'phi', {
-				get: function() {return cameraContainer.ang._phi;},
-				set: function(phi_) {
-					var theta_
-					cameraContainer.ang._phi = phi_;
-					theta_ = cameraContainer.ang._theta;
-					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
-					cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
+			// make a container for the newly oriented camera to control its orientation
+			cameraContainer = new THREE.Object3D();
+			cameraContainer.add(camera);
+			cameraContainer.position.set(20, 0, 0);
+			cameraContainer.rotation.order = 'ZYX';
+			cameraContainer.ang = {'_phi': 0, '_theta': 0};
+			Object.defineProperty(cameraContainer.ang, 'phi', {
+					get: function() {return cameraContainer.ang._phi;},
+					set: function(phi_) {
+						var theta_
+						cameraContainer.ang._phi = phi_;
+						theta_ = cameraContainer.ang._theta;
+						cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
+						cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
+					}
 				}
-			}
-		);
-		Object.defineProperty(cameraContainer.ang, 'theta', {
-				get: function() {return cameraContainer.ang._theta;},
-				set: function(theta_) {
-					var phi_
-					cameraContainer.ang._theta = theta_;
-					phi_ = cameraContainer.ang._phi;
-					cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
-					cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
+			);
+			Object.defineProperty(cameraContainer.ang, 'theta', {
+					get: function() {return cameraContainer.ang._theta;},
+					set: function(theta_) {
+						var phi_
+						cameraContainer.ang._theta = theta_;
+						phi_ = cameraContainer.ang._phi;
+						cameraContainer.rotation.set(0, -cameraContainer.ang._theta, cameraContainer.ang._phi);
+						cameraContainer.position.set(20 * Math.cos(phi_) * Math.cos(theta_), 20 * Math.sin(phi_) * Math.cos(theta_), 20 * Math.sin(theta_));
+					}
 				}
+			);
+			scene.add(cameraContainer);
+			
+			// create grid
+			var gridGeom;
+			gridGeom = new THREE.Geometry();
+			var gridMat = new THREE.LineBasicMaterial({color: 0xdddddd, shading: THREE.FlatShading});
+			var i;
+			var lineGeom, line;
+			for (i = -10; i <= 10; i++) {
+				lineGeom = new THREE.Geometry();
+				lineGeom.vertices.push(new THREE.Vector3(i, -10, 0));
+				lineGeom.vertices.push(new THREE.Vector3(i, 10, 0));
+				line = new THREE.Line(lineGeom, gridMat);
+				scene.add(line);
 			}
-		);
-		scene.add(cameraContainer);
+			for (i = -10; i <= 10; i++) {
+				lineGeom = new THREE.Geometry();
+				lineGeom.vertices.push(new THREE.Vector3(-10, i, 0));
+				lineGeom.vertices.push(new THREE.Vector3(10, i, 0));
+				line = new THREE.Line(lineGeom, gridMat);
+				scene.add(line);
+			}
+			
+			// create axes
+			var xAxis, yAxis, zAxis;
+			xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 1.5, 0xaa0000, 0.4, 0.3);
+			yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1.5, 0x00aa00, 0.4, 0.3);
+			zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), 1.5, 0x0000aa, 0.4, 0.3);
+			xAxis.line.material.linewidth = 2.5;
+			yAxis.line.material.linewidth = 2.5;
+			zAxis.line.material.linewidth = 2.5;
+			scene.add(xAxis);
+			scene.add(yAxis);
+			scene.add(zAxis);
 
-		// create grid
-		var gridGeom;
-		gridGeom = new THREE.Geometry();
-		var gridMat = new THREE.LineBasicMaterial({color: 0xdddddd, shading: THREE.FlatShading});
-		var i;
-		var lineGeom, line;
-		for (i = -10; i <= 10; i++) {
-			lineGeom = new THREE.Geometry();
-			lineGeom.vertices.push(new THREE.Vector3(i, -10, 0));
-			lineGeom.vertices.push(new THREE.Vector3(i, 10, 0));
-			line = new THREE.Line(lineGeom, gridMat);
-			scene.add(line);
-		}
-		for (i = -10; i <= 10; i++) {
-			lineGeom = new THREE.Geometry();
-			lineGeom.vertices.push(new THREE.Vector3(-10, i, 0));
-			lineGeom.vertices.push(new THREE.Vector3(10, i, 0));
-			line = new THREE.Line(lineGeom, gridMat);
-			scene.add(line);
-		}
-		
-		// create axes
-		var xAxis, yAxis, zAxis;
-		xAxis = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 0), 1.5, 0xaa0000, 0.4, 0.3);
-		yAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 1.5, 0x00aa00, 0.4, 0.3);
-		zAxis = new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, 0), 1.5, 0x0000aa, 0.4, 0.3);
-		xAxis.line.material.linewidth = 2.5;
-		yAxis.line.material.linewidth = 2.5;
-		zAxis.line.material.linewidth = 2.5;
-		scene.add(xAxis);
-		scene.add(yAxis);
-		scene.add(zAxis);
-
-		// create lights
-		var light = new THREE.SpotLight( 0xffffff, 1.5 );
-		light.position.set( 400, 500, 2000 );
-		light.castShadow = true;
-		light.shadowCameraNear = 0;
-		light.shadowCameraFar = camera.far;
-		light.shadowCameraFov = 50;
-		light.shadowBias = -0.00022;
-		light.shadowDarkness = 0.5;
-		light.shadowMapWidth = 2048;
-		light.shadowMapHeight = 2048;
-		scene.add( light );
-		
-		var ambientLight = new THREE.AmbientLight(0x505050);
-		scene.add(ambientLight);
+			// create lights
+			var light = new THREE.SpotLight( 0xffffff, 1.5 );
+			light.position.set( 400, 500, 2000 );
+			light.castShadow = true;
+			light.shadowCameraNear = 0;
+			light.shadowCameraFar = camera.far;
+			light.shadowCameraFov = 50;
+			light.shadowBias = -0.00022;
+			light.shadowDarkness = 0.5;
+			light.shadowMapWidth = 2048;
+			light.shadowMapHeight = 2048;
+			scene.add( light );
+			
+			var ambientLight = new THREE.AmbientLight(0x505050);
+			scene.add(ambientLight);
+		})();
 		
 		var previewMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee, transparent: true, opacity: 0.5});
 		var mainMaterial = new THREE.MeshPhongMaterial({color: 0x0099ee, shading: THREE.FlatShading, ambient: 0x0022ee});
@@ -252,81 +258,85 @@
 		
 		var currentInput = {};
 		
-		var Tool = function(name, inputs, getShape) {
-			this.name = name;
-			this.inputs = inputs;
-			this.getShape = getShape;
-		}
-		this.prototype = new Object(); // This could be left out 
-		
-		var boxTool = new Tool(
-			'Box',
-			{Depth: 1, Width: 1, Height: 1},
-			function() {
-				var newObj = new THREE.Mesh(
-					new THREE.BoxGeometry(currentInput.Depth, currentInput.Width, currentInput.Height),
-					previewMaterial
-				);
-				newObj.position.set(currentInput.Depth/2, currentInput.Width/2, currentInput.Height/2);
-				return newObj;
+		// define tools
+		var Tool, boxTool, sphereTool, cylinderTool, coneTool, icosahedronTool, selectTool;
+		(function() {
+			Tool = function(name, inputs, getShape) {
+				this.name = name;
+				this.inputs = inputs;
+				this.getShape = getShape;
 			}
-		);
-		
-		var sphereTool = new Tool(
-			'Sphere',
-			{Radius: 1},
-			function() {
-				var newObj = new THREE.Mesh(
-					new THREE.SphereGeometry(currentInput.Radius, 24, 18),
-					previewMaterial
-				);
-				return newObj;
-			}
-		);
-		
-		var cylinderTool = new Tool(
-			'Cylinder',
-			{Radius: 1, Height: 1},
-			function() {
-				var newObj = new THREE.Mesh(
-					new THREE.CylinderGeometry(currentInput.Radius, currentInput.Radius, currentInput.Height, 24),
-					previewMaterial
-				);
-				newObj.position.y = currentInput.Height/2;
-				return newObj;
-			}
-		);
-		
-		var coneTool = new Tool(
-			'Cone',
-			{'Bottom Radius': 1, 'Top Radius': 0.5, Height: 1},
-			function() {
-				var newObj = new THREE.Mesh(
-					new THREE.CylinderGeometry(currentInput['Bottom Radius'], currentInput['Top Radius'], currentInput.Height, 24),
-					previewMaterial
-				);
-				newObj.position.y = currentInput.Height/2;
-				return newObj;
-			}
-		);
-		
-		var icosahedronTool = new Tool(
-			'Icosah.',
-			{Radius: 1,},
-			function() {
-				var newObj = new THREE.Mesh(
-					new THREE.IcosahedronGeometry(currentInput.Radius),
-					previewMaterial
-				);
-				return newObj;
-			}
-		);
-		
-		var selectTool = new Tool(
-			'Select',
-			{},
-			function() {return new THREE.Mesh(new THREE.Geometry(), new THREE.Material())}
-		);
+			Tool.prototype = new Object(); // This could be left out 
+			
+			boxTool = new Tool(
+				'Box',
+				{Depth: 1, Width: 1, Height: 1},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.BoxGeometry(currentInput.Depth, currentInput.Width, currentInput.Height),
+						previewMaterial
+					);
+					newObj.position.set(currentInput.Depth/2, currentInput.Width/2, currentInput.Height/2);
+					return newObj;
+				}
+			);
+			
+			sphereTool = new Tool(
+				'Sphere',
+				{Radius: 1},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.SphereGeometry(currentInput.Radius, 24, 18),
+						previewMaterial
+					);
+					return newObj;
+				}
+			);
+			
+			cylinderTool = new Tool(
+				'Cylinder',
+				{Radius: 1, Height: 1},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.CylinderGeometry(currentInput.Radius, currentInput.Radius, currentInput.Height, 24),
+						previewMaterial
+					);
+					newObj.position.y = currentInput.Height/2;
+					return newObj;
+				}
+			);
+			
+			coneTool = new Tool(
+				'Cone',
+				{'Bottom Radius': 1, 'Top Radius': 0.5, Height: 1},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.CylinderGeometry(currentInput['Bottom Radius'], currentInput['Top Radius'], currentInput.Height, 24),
+						previewMaterial
+					);
+					newObj.position.y = currentInput.Height/2;
+					return newObj;
+				}
+			);
+			
+			icosahedronTool = new Tool(
+				'Icosah.',
+				{Radius: 1,},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.IcosahedronGeometry(currentInput.Radius),
+						previewMaterial
+					);
+					return newObj;
+				}
+			);
+			
+			selectTool = new Tool(
+				'Select',
+				{},
+				function() {return new THREE.Mesh(new THREE.Geometry(), new THREE.Material())}
+			);
+		})();
 		
 		addToolButton(boxTool);
 		addToolButton(sphereTool);
@@ -346,6 +356,7 @@
 		};
 		
 		var onchangeFactory = function(inputName) {
+			// create afunction that is to be called when the user changes an input
 			return function() {
 				currentInput[inputName] = parseFloat(this.value);
 				onInputChange();
@@ -356,19 +367,19 @@
 			activeTool = tool;
 			
 			// remove all inputs
-			while (toolOptions.firstChild) {
-				toolOptions.removeChild(toolOptions.firstChild);
+			while (gui.toolOptions.firstChild) {
+				gui.toolOptions.removeChild(gui.toolOptions.firstChild);
 			}
 			
-			toolOptions.innerHTML = '<p style="font-size:18px">' + tool.name + ':</p>';
-			toolOptions.style.padding = '10px';
+			gui.toolOptions.innerHTML = '<p style="font-size:18px">' + tool.name + ':</p>';
+			gui.toolOptions.style.padding = '10px';
 			for (var inputName in tool.inputs) {
 				if (tool.inputs.hasOwnProperty(inputName)) {
 					var label = document.createElement('div');
 					label.innerHTML = inputName;
-					toolOptions.appendChild(label);
+					gui.toolOptions.appendChild(label);
 					currentInput[inputName] = parseFloat(tool.inputs[inputName]);
-					toolOptions.appendChild(
+					gui.toolOptions.appendChild(
 						createInputField('number', tool.inputs[inputName], onchangeFactory(inputName))
 					);
 				}
@@ -387,17 +398,17 @@
 		
 		var onSelectionChanged = function() {
 			if (selectedObject === null) {
-				devArea.innerHTML = 'null';
+				gui.devArea.innerHTML = 'null';
 			} else {
 				originalPosition.x = selectedObject.position.x;
 				originalPosition.y = selectedObject.position.y;
 				originalPosition.z = selectedObject.position.z;
-				devArea.innerHTML = 'obj';
+				gui.devArea.innerHTML = 'obj';
 				
 				
 				// remove all inputs
-				while (objectDetails.firstChild) {
-					objectDetails.removeChild(objectDetails.firstChild);
+				while (gui.objectDetails.firstChild) {
+					gui.objectDetails.removeChild(gui.objectDetails.firstChild);
 				}
 				
 				for (var i = 0; i < 3; i++) {
@@ -405,7 +416,7 @@
 					var label = document.createElement('div');
 					label.innerHTML = name;
 				
-					objectDetails.appendChild(label);
+					gui.objectDetails.appendChild(label);
 					
 					var fn = makeSelectionChangedHandler(name);
 					
@@ -414,7 +425,7 @@
 						0,
 						fn
 					);
-					objectDetails.appendChild(inputField);
+					gui.objectDetails.appendChild(inputField);
 				}
 			}
 		};
@@ -422,7 +433,7 @@
 		window.addEventListener(
 			'resize',
 			function(event) {
-				// update aspect ratios
+				// update aspect ratios and size of the viewer
 				camera.aspect = (window.innerWidth - 200) / window.innerHeight;
 				camera.updateProjectionMatrix();
 				renderer.setSize((window.innerWidth - 200), window.innerHeight);
@@ -546,9 +557,6 @@
 		};
 		onerror.max = 3;
 		onerror.num = 0;
-		
-		createObjectDetails();
-		addButtonContainer();
 		
 		renderer.render(scene, camera);
 		</script>
