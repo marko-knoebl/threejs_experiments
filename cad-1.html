@@ -103,6 +103,7 @@
 			gui.toolOptions = document.createElement('div');
 			gui.toolOptions.style.backgroundColor = '#eeeeee';
 			gui.toolOptions.style.fontSize = '12';
+			gui.toolOptions.style.padding = '10px';
 			gui.toolOptionsContainer.appendChild(gui.toolOptions);
 			gui.toolButtons = document.createElement('div');
 			gui.toolButtons.style.textAlign = 'center';
@@ -128,11 +129,13 @@
 			gui.toolOptionsContainer.appendChild(gui.toolButtons);
 			
 			gui.objectDetailsContainer = document.createElement('div');
+			gui.objectDetailsContainer.style.display = 'none';
 			gui.leftSidebar.appendChild(gui.objectDetailsContainer);
 			
 			gui.objectDetails = document.createElement('div');
 			gui.objectDetails.style.backgroundColor = '#eeeeee';
 			gui.objectDetails.style.fontSize = '12';
+			gui.objectDetails.style.padding = '10px';
 			gui.objectDetailsContainer.appendChild(gui.objectDetails);
 			
 			gui.objectDetailsButtons = document.createElement('div');
@@ -142,7 +145,6 @@
 			gui.objectDetailsContainer.appendChild(gui.objectDetailsButtons);
 			
 			gui.devArea = document.createElement('div');
-			gui.devArea.innerHTML = 'ttt';
 			gui.leftSidebar.appendChild(gui.devArea);
 		})();
 		
@@ -371,8 +373,11 @@
 				gui.toolOptions.removeChild(gui.toolOptions.firstChild);
 			}
 			
-			gui.toolOptions.innerHTML = '<p style="font-size:18px">' + tool.name + ':</p>';
-			gui.toolOptions.style.padding = '10px';
+			if (tool.name !== 'Select') {
+				gui.toolOptions.innerHTML = '<p style="font-size:18px">' + tool.name + ':</p>';
+			} else {
+				gui.toolOptions.innerHTML = '';
+			}
 			for (var inputName in tool.inputs) {
 				if (tool.inputs.hasOwnProperty(inputName)) {
 					var label = document.createElement('div');
@@ -383,6 +388,11 @@
 						createInputField('number', tool.inputs[inputName], onchangeFactory(inputName))
 					);
 				}
+			}
+			if (tool === selectTool) {
+				gui.toolButtons.style.display = 'none';
+			} else {
+				gui.toolButtons.style.display = 'block';
 			}
 			onInputChange();
 		}
@@ -398,12 +408,12 @@
 		
 		var onSelectionChanged = function() {
 			if (selectedObject === null) {
-				gui.devArea.innerHTML = 'null';
+				gui.objectDetailsContainer.style.display = 'none';
 			} else {
 				originalPosition.x = selectedObject.position.x;
 				originalPosition.y = selectedObject.position.y;
 				originalPosition.z = selectedObject.position.z;
-				gui.devArea.innerHTML = 'obj';
+				gui.objectDetailsContainer.style.display = 'block';
 				
 				
 				// remove all inputs
@@ -557,6 +567,8 @@
 		};
 		onerror.max = 3;
 		onerror.num = 0;
+		
+		activateTool(selectTool);
 		
 		renderer.render(scene, camera);
 		</script>
