@@ -198,6 +198,8 @@
 					}
 				}
 			);
+			cameraContainer.ang.phi = Math.PI/12;
+			cameraContainer.ang.theta = Math.PI/8;
 			scene.add(cameraContainer);
 			
 			// create grid
@@ -261,7 +263,7 @@
 		var currentInput = {};
 		
 		// define tools
-		var Tool, boxTool, sphereTool, cylinderTool, coneTool, icosahedronTool, selectTool;
+		var Tool, boxTool, sphereTool, cylinderTool, coneTool, torusTool, pyramidTool, icosahedronTool, selectTool;
 		(function() {
 			Tool = function(name, inputs, getShape) {
 				this.name = name;
@@ -303,20 +305,48 @@
 						new THREE.CylinderGeometry(currentInput.Radius, currentInput.Radius, currentInput.Height, 24),
 						previewMaterial
 					);
-					newObj.position.y = currentInput.Height/2;
+					newObj.rotation.x = Math.PI/2
+					newObj.position.z = currentInput.Height/2;
 					return newObj;
 				}
 			);
 			
 			coneTool = new Tool(
 				'Cone',
-				{'Bottom Radius': 1, 'Top Radius': 0.5, Height: 1},
+				{'Bottom Radius': 1, 'Top Radius': 0, Height: 1},
 				function() {
 					var newObj = new THREE.Mesh(
-						new THREE.CylinderGeometry(currentInput['Bottom Radius'], currentInput['Top Radius'], currentInput.Height, 24),
+						new THREE.CylinderGeometry(currentInput['Top Radius'], currentInput['Bottom Radius'], currentInput.Height, 24),
 						previewMaterial
 					);
-					newObj.position.y = currentInput.Height/2;
+					newObj.rotation.x = Math.PI/2
+					newObj.position.z = currentInput.Height/2;
+					return newObj;
+				}
+			);
+			
+			torusTool = new Tool(
+				'Torus',
+				{'Primary Radius': 2, 'Secondary Radius': 1},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.TorusGeometry(currentInput['Primary Radius'], currentInput['Secondary Radius'], 24, 24),
+						previewMaterial
+					);
+					return newObj;
+				}
+			);
+			
+			pyramidTool = new Tool(
+				'Pyramid',
+				{'Height': 1, 'Radius': 1, 'Sides': 4},
+				function() {
+					var newObj = new THREE.Mesh(
+						new THREE.CylinderGeometry(0, currentInput['Radius'], currentInput['Height'], currentInput['Sides'], false),
+						previewMaterial
+					);
+					newObj.rotation.x = Math.PI/2;
+					newObj.position.z = currentInput.Height/2;
 					return newObj;
 				}
 			);
@@ -344,6 +374,8 @@
 		addToolButton(sphereTool);
 		addToolButton(cylinderTool);
 		addToolButton(coneTool);
+		addToolButton(torusTool);
+		addToolButton(pyramidTool);
 		addToolButton(icosahedronTool);
 		
 		var activeTool;
