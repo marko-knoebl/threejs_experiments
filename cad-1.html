@@ -6,6 +6,8 @@
 	<body>
 		<script src="http://threejs.org/build/three.min.js"></script>
 		<script src="three.js"></script>
+		<script src="https://github.com/chandlerprall/ThreeCSG/raw/master/ThreeCSG.js"></script><!--TODO: find a better hosting solution-->
+		<script src="ThreeCSG.js"></script>
 		<script>
 		"use strict";
 		// a simple viewer with camera controls which has the z-axis vertical
@@ -137,6 +139,29 @@
 			gui.objectDetails.style.fontSize = '12';
 			gui.objectDetails.style.padding = '10px';
 			gui.objectDetailsContainer.appendChild(gui.objectDetails);
+			
+			gui.booleanContainer = document.createElement('div');
+			gui.leftSidebar.appendChild(gui.booleanContainer);
+			
+			gui.booleans = document.createElement('div');
+			gui.booleanContainer.appendChild(gui.booleans);
+			
+			var intButton = createButton(
+				'Intersection',
+				function() {
+					var box = new THREE.BoxGeometry(1, 2, 1);
+					var box_mesh = new THREE.Mesh(box, previewMaterial);
+					var box_bsp = new ThreeBSP(box);
+					var sel_bsp = new ThreeBSP(selectedObject);
+					var int_bsp = box_bsp.intersect(sel_bsp).toGeometry();
+					int_bsp.computeVertexNormals();
+					var int_bsp_ = new THREE.Mesh(int_bsp, previewMaterial);
+					scene.add(int_bsp_);
+					//scene.add(new THREE.Mesh(box, previewMaterial));
+					renderer.render(scene, camera);
+				}
+			);
+			gui.booleans.appendChild(intButton);
 			
 			gui.devArea = document.createElement('div');
 			gui.leftSidebar.appendChild(gui.devArea);
@@ -311,7 +336,8 @@
 				{'Bottom Radius': 1, 'Top Radius': 0, Height: 1},
 				function() {
 					var newObj = new THREE.Mesh(
-						new THREE.CylinderGeometry(currentInput['Top Radius'], currentInput['Bottom Radius'], currentInput.Height, 24),
+						// TODO: having a radius of 0 will cause problems with boolean operations. Use this workaround for now
+						new THREE.CylinderGeometry(currentInput['Top Radius'] || 0.00001, currentInput['Bottom Radius'] || 0.00001, currentInput.Height, 24, true),
 						previewMaterial
 					);
 					newObj.rotation.x = Math.PI/2
@@ -337,7 +363,7 @@
 				{'Height': 1, 'Radius': 1, 'Sides': 4},
 				function() {
 					var newObj = new THREE.Mesh(
-						new THREE.CylinderGeometry(0, currentInput['Radius'], currentInput['Height'], currentInput['Sides'], false),
+						new THREE.CylinderGeometry(0, currentInput['Radius'] || 0.00001, currentInput['Height'], currentInput['Sides'], false),
 						previewMaterial
 					);
 					newObj.rotation.x = Math.PI/2;
