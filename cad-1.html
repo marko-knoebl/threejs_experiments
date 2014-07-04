@@ -19,6 +19,7 @@
 				var button = document.createElement('button');
 				button.style.margin = '3px';
 				button.style.border = '0px';
+				button.style.height = '24px';
 				button.style.width = '58px';
 				button.style.backgroundColor = '#1ba1e2';
 				button.style.color = '#ffffff';
@@ -87,6 +88,8 @@
 			document.body.style.backgroundColor = '#eeeeee';
 			document.body.style.fontFamily = 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif';
 			document.body.style.fontSize = '16';
+			// show arrow instead of text cursor during mouse drags
+			document.body.style.cursor = 'default';
 			
 			// vertical split
 			gui.leftSidebar = document.createElement('div');
@@ -96,16 +99,18 @@
 			document.body.appendChild(gui.leftSidebar);
 			
 			gui.toolSelector = document.createElement('div');
+			gui.toolSelector.id = 'toolSelector';
 			gui.toolSelector.style.backgroundColor = '#ffffff';
 			gui.toolSelector.style.margin = '3px';
 			gui.leftSidebar.appendChild(gui.toolSelector);
 			
 			gui.toolOptionsContainer = document.createElement('div');
+			gui.toolOptionsContainer.id = 'toolOptionsContainer';
 			gui.leftSidebar.appendChild(gui.toolOptionsContainer);
 			gui.toolOptions = document.createElement('div');
 			gui.toolOptions.style.backgroundColor = '#eeeeee';
 			gui.toolOptions.style.fontSize = '12';
-			gui.toolOptions.style.padding = '10px';
+			//gui.toolOptions.style.padding = '10px';
 			gui.toolOptionsContainer.appendChild(gui.toolOptions);
 			gui.toolButtons = document.createElement('div');
 			gui.toolButtons.style.textAlign = 'center';
@@ -137,34 +142,67 @@
 			gui.objectDetails = document.createElement('div');
 			gui.objectDetails.style.backgroundColor = '#eeeeee';
 			gui.objectDetails.style.fontSize = '12';
-			gui.objectDetails.style.padding = '10px';
+			//gui.objectDetails.style.padding = '10px';
 			gui.objectDetailsContainer.appendChild(gui.objectDetails);
 			
 			gui.booleanContainer = document.createElement('div');
+			gui.booleanContainer.style.backgroundColor = '#eeeeee';
+			gui.booleanContainer.style.display = 'none';
+			gui.booleanContainer.style.padding = '0px';
 			gui.leftSidebar.appendChild(gui.booleanContainer);
 			
 			gui.booleans = document.createElement('div');
+			gui.booleans.style.margin = '0px';
 			gui.booleanContainer.appendChild(gui.booleans);
 			
 			var intButton = createButton(
 				'Intersection',
 				function() {
-					var box = new THREE.BoxGeometry(1, 2, 1);
-					var box_mesh = new THREE.Mesh(box, previewMaterial);
-					var box_bsp = new ThreeBSP(box);
-					var sel_bsp = new ThreeBSP(selectedObject);
-					var int_bsp = box_bsp.intersect(sel_bsp).toGeometry();
-					int_bsp.computeVertexNormals();
-					var int_bsp_ = new THREE.Mesh(int_bsp, previewMaterial);
-					scene.add(int_bsp_);
-					//scene.add(new THREE.Mesh(box, previewMaterial));
+					var bsp0 = new ThreeBSP(selectedObjects[0]);
+					var bsp1 = new ThreeBSP(selectedObjects[1]);
+					var res = bsp0.intersect(bsp1).toMesh();
+					res.material = mainMaterial;
+					geoDoc.add(res);
 					renderer.render(scene, camera);
 				}
 			);
+			intButton.style.width = '78px';
+			intButton.style.display = 'block';
+			intButton.style.margin = '6px';
 			gui.booleans.appendChild(intButton);
+			var uniButton = createButton(
+				'Union',
+				function() {
+					var bsp0 = new ThreeBSP(selectedObjects[0]);
+					var bsp1 = new ThreeBSP(selectedObjects[1]);
+					var res = bsp0.union(bsp1).toMesh();
+					res.material = mainMaterial;
+					geoDoc.add(res);
+					renderer.render(scene, camera);
+				}
+			);
+			uniButton.style.width = '78px';
+			uniButton.style.display = 'block';
+			uniButton.style.margin = '6px';
+			gui.booleans.appendChild(uniButton);
+			var diffButton = createButton(
+				'Difference',
+				function() {
+					var bsp0 = new ThreeBSP(selectedObjects[0]);
+					var bsp1 = new ThreeBSP(selectedObjects[1]);
+					var res = bsp0.subtract(bsp1).toMesh();
+					res.material = mainMaterial;
+					geoDoc.add(res);
+					renderer.render(scene, camera);
+				}
+			);
+			diffButton.style.width = '78px';
+			diffButton.style.display = 'block';
+			diffButton.style.margin = '6px';
+			gui.booleans.appendChild(diffButton);
 			
 			gui.devArea = document.createElement('div');
-			gui.leftSidebar.appendChild(gui.devArea);
+			//gui.leftSidebar.appendChild(gui.devArea);
 		})();
 		
 		// create renderer
@@ -253,19 +291,14 @@
 			scene.add(xAxis);
 			scene.add(yAxis);
 			scene.add(zAxis);
-
-			// create lights
-			var light = new THREE.SpotLight( 0xffffff, 1.5 );
-			light.position.set( 400, 500, 2000 );
-			light.castShadow = true;
-			light.shadowCameraNear = 0;
-			light.shadowCameraFar = camera.far;
-			light.shadowCameraFov = 50;
-			light.shadowBias = -0.00022;
-			light.shadowDarkness = 0.5;
-			light.shadowMapWidth = 2048;
-			light.shadowMapHeight = 2048;
-			scene.add( light );
+			
+			var light
+			var positions = [[1, 1.1, 1.4], [-1, -1, -0.5]];
+			for (var i = 0; i < 2; i++) {
+				light = new THREE.DirectionalLight(0xffffff, 0.9);
+				light.position.set(positions[i][0], positions[i][1], positions[i][2]);
+				scene.add(light);
+			}
 			
 			var ambientLight = new THREE.AmbientLight(0x505050);
 			scene.add(ambientLight);
@@ -277,7 +310,7 @@
 		// set up ray picker
 		var projector = new THREE.Projector();
 		
-		var selectedObject;
+		var selectedObjects = [];
 		
 		var currentInput = {};
 		
@@ -363,7 +396,7 @@
 				{'Height': 1, 'Radius': 1, 'Sides': 4},
 				function() {
 					var newObj = new THREE.Mesh(
-						new THREE.CylinderGeometry(0, currentInput['Radius'] || 0.00001, currentInput['Height'], currentInput['Sides'], false),
+						new THREE.CylinderGeometry(0.00001, currentInput['Radius'], currentInput['Height'], currentInput['Sides'], false),
 						previewMaterial
 					);
 					newObj.rotation.x = Math.PI/2;
@@ -421,10 +454,13 @@
 		var activateTool = function(tool) {
 			activeTool = tool;
 			
-			if (selectedObject) {
-				selectedObject.material = mainMaterial;
-			}
-			selectedObject = null;
+			// deselect all objects
+			selectedObjects.forEach(
+				function(element) {
+					element.material = mainMaterial;
+				}
+			);
+			selectedObjects = [];
 			onSelectionChanged(); // TODO: call this automatically
 			
 			// remove all inputs
@@ -460,26 +496,31 @@
 		
 		var makeSelectionChangedHandler = function(name) {
 			return function() {
-				selectedObject.position[name] = originalPosition[name] + parseFloat(this.value);
+				// TODO: this only handles the first selected object
+				var self = this;
+				4;
+				selectedObjects.forEach(function(obj) {
+					obj.position[name] = originalPosition[name] + parseFloat(self.value);
+				});
 				renderer.render(scene, camera);
 			};
 		};
 		
 		var onSelectionChanged = function() {
-			if (selectedObject === null) {
+			if (selectedObjects.length === 0) {
 				gui.objectDetailsContainer.style.display = 'none';
 			} else {
-				originalPosition.x = selectedObject.position.x;
-				originalPosition.y = selectedObject.position.y;
-				originalPosition.z = selectedObject.position.z;
+				originalPosition.x = selectedObjects[0].position.x;
+				originalPosition.y = selectedObjects[0].position.y;
+				originalPosition.z = selectedObjects[0].position.z;
 				gui.objectDetailsContainer.style.display = 'block';
-				
 				
 				// remove all inputs
 				while (gui.objectDetails.firstChild) {
 					gui.objectDetails.removeChild(gui.objectDetails.firstChild);
 				}
 				
+				// create inputs to change location
 				for (var i = 0; i < 3; i++) {
 					var name = ['x', 'y', 'z'][i];
 					var label = document.createElement('div');
@@ -496,6 +537,11 @@
 					);
 					gui.objectDetails.appendChild(inputField);
 				}
+			}
+			if (selectedObjects.length >= 2) {
+				gui.booleanContainer.style.display = 'block';
+			} else {
+				gui.booleanContainer.style.display = 'none';
 			}
 			renderer.render(scene, camera);
 		};
@@ -559,14 +605,27 @@
 						if (activeTool === selectTool) {
 							var ray = projector.pickingRay(mouse2D, camera);
 							var intersects = ray.intersectObjects(geoDoc.objects);
-							if (selectedObject) {
-								selectedObject.material = mainMaterial;
-							}
-							if (intersects[0]) {
-								selectedObject = intersects[0].object;
-								selectedObject.material = previewMaterial;
+							
+							if (intersects.length === 0) {
+								// user did not click on an object - deselect all objects)
+								selectedObjects.forEach(
+									function(obj) {
+										obj.material = mainMaterial;
+									}
+								);
+								selectedObjects = [];
 							} else {
-								selectedObject = null;
+								// user clicked on an object
+								var idx = selectedObjects.indexOf(intersects[0].object)
+								if (idx === -1) {
+									// was not selected before
+									selectedObjects.push(intersects[0].object);
+									intersects[0].object.material = previewMaterial;
+								} else {
+									// was selected before
+									selectedObjects.splice(idx, 1);
+									intersects[0].object.material = mainMaterial;
+								}
 							}
 							onSelectionChanged();
 						}
@@ -614,14 +673,19 @@
 					renderer.render(scene, camera);
 				} else if (event.which === 46) {
 					// del key
-					geoDoc.rem(selectedObject);
-					selectedObject = null;
+					selectedObjects.forEach( function(element, index) {
+						geoDoc.rem(element);
+						delete selectedObjects[index];
+					});
+					// remove undefined values
+					selectedObjects = selectedObjects.filter(function(element){ return element !== undefined });
 					onSelectionChanged();
 				} else if (event.which === 27) {
 					// esc key
 					activateTool(selectTool);
-					//selectedObject.material = mainMaterial;
-					selectedObject = null;
+					// deselect all objects
+					selectedObjects.forEach( function(element) {element.material = mainMaterial});
+					selectedObjects = [];
 					onSelectionChanged();
 				}
 			},
