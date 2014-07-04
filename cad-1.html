@@ -12,18 +12,26 @@
 		"use strict";
 		// a simple viewer with camera controls which has the z-axis vertical
 		
+		// generic helper functions
+		var setStyle
+		(function() {
+			setStyle = function(obj, style) {
+				for (var prop in style) {
+					if (style.hasOwnProperty(prop)) {
+						obj.style[prop] = style[prop];
+					}
+				}
+			};
+		})();
+		
 		// gui helper functions
 		var createButton, addToolButton, createInputField;
 		(function() {
 			createButton = function(text, onclick) {
 				var button = document.createElement('button');
-				button.style.margin = '3px';
-				button.style.border = '0px';
-				button.style.height = '24px';
-				button.style.width = '58px';
-				button.style.backgroundColor = '#1ba1e2';
-				button.style.color = '#ffffff';
-				button.style.fontSize = '12';
+				setStyle(button, {
+					'margin': '3px', 'border': '0px', 'height': '24px', 'width': '58px',
+					'backgroundColor': '#1ba1e2', 'color': '#ffffff', 'fontSize': '12'});
 				button.innerHTML = text;
 				button.onclick = onclick;
 				return button;
@@ -32,9 +40,8 @@
 			addToolButton = function(tool) {
 				var newButton;
 				newButton = createButton(tool.name);
-				newButton.style.width = '58px';
-				newButton.style.height = '58px';
-				newButton.style.fontSize = '12';
+				setStyle(newButton, {
+					'width': '58px', 'height': '68px', 'fontSize': '12'});
 				newButton.onclick = function() {activateTool(tool);};
 				gui.toolSelector.appendChild(newButton);
 			}
@@ -43,10 +50,8 @@
 				var inputField = document.createElement('input');
 				inputField.type = type;
 				inputField.value = default_;
-				inputField.style.borderWidth = '1px';
-				inputField.style.borderStyle = 'solid';
-				inputField.style.margin = '3px';
-				inputField.style.width = '80px';
+				setStyle(inputField, {
+					'borderWidth': '1px', 'borderStyle': 'solid', 'margin': '3px', 'width': '80px'});
 				if (onchange) {
 					inputField.onchange = onchange;
 				}
@@ -84,18 +89,14 @@
 		var gui = {};
 		(function() {
 			// set the document style (CSS)
-			document.body.style.margin = '0px';
-			document.body.style.backgroundColor = '#eeeeee';
-			document.body.style.fontFamily = 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif';
-			document.body.style.fontSize = '16';
-			// show arrow instead of text cursor during mouse drags
-			document.body.style.cursor = 'default';
+			setStyle(document.body, {
+				'margin': '0px', 'backgroundColor': '#eeeeee', 'fontFamily': 'Arimo, "Liberation Sans", Arial, Helvetica, sans-serif',
+				'fontSize': '16', 'cursor': 'default'});
 			
 			// vertical split
 			gui.leftSidebar = document.createElement('div');
-			gui.leftSidebar.style.cssFloat = 'left';
-			gui.leftSidebar.style.width = '200px';
-			gui.leftSidebar.style.backgroundColor = '#ffffff';
+			setStyle(gui.leftSidebar, {
+				'cssFloat': 'left', 'width': '200px', 'backgroundColor': '#ffffff'})
 			document.body.appendChild(gui.leftSidebar);
 			
 			gui.toolSelector = document.createElement('div');
